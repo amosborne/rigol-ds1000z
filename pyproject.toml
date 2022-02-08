@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rigol-ds1000z"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python library for interfacing with Rigol DS1000Z series oscilloscopes."
 authors = ["amosborne <amosborne@users.noreply.github.com>"]
 license = "MIT"
@@ -26,7 +26,7 @@ pdoc3 = "^0.10.0"
 jupyterlab = "^3.2.9"
 
 [tool.poetry.scripts]
-rigol-ds1000z = "scripts.cli:main"
+rigol-ds1000z = "rigol_ds1000z.cli:main"
 
 [tool.isort]
 profile = "black"
