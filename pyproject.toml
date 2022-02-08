@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "rigol-ds1000z"
+version = "0.1.0"
+description = "Python library for interfacing with Rigol DS1000Z series oscilloscopes."
+authors = ["amosborne <amosborne@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/amosborne/rigol-ds1000z"
+classifiers = ['Topic :: System :: Hardware :: Hardware Drivers']
+
+[tool.poetry.dependencies]
+python = "^3.9"
+PyVISA = "^1.11.3"
+matplotlib = "^3.5.1"
+numpy = "^1.22.2"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.12.1"
+isort = "^5.8.0"
+black = "^20.8b1"
+mypy = "^0.812"
+flake9 = "^3.8.3"
+pytest-randomly = "^3.7.0"
+pytest-cov = "^2.11.1"
+pdoc3 = "^0.10.0"
+jupyterlab = "^3.2.9"
+
+[tool.poetry.scripts]
+rigol-ds1000z = "scripts.cli:main"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
+exclude = "*.ipynb_checkpoints*"
+
+[tool.pytest.ini_options]
+addopts = "--cov=rigol_ds1000z --cov-report=html:docs/coverage"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

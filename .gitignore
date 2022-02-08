@@ -1,0 +1,14 @@
+# byte-compiled python
+__pycache__/
+
+# pyenv
+.python-version
+
+# poetry
+poetry.lock
+
+# jupyterlab
+.ipynb_checkpoints/
+
+# pytest
+.coverage
