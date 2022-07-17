@@ -23,12 +23,6 @@ repos:
       files: rigol_ds1000z/*
       types: [python]
     - id: system
-      name: pdoc
-      entry: poetry run pdoc rigol_ds1000z/ --html -o docs/ --force
-      language: system
-      types: [python]
-      pass_filenames: false
-    - id: system
       name: pytest
       entry: poetry run pytest
       language: system

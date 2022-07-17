@@ -22,8 +22,9 @@ mypy = "^0.812"
 flake9 = "^3.8.3"
 pytest-randomly = "^3.7.0"
 pytest-cov = "^2.11.1"
-pdoc3 = "^0.10.0"
 jupyterlab = "^3.2.9"
+Sphinx = "^5.0.2"
+sphinx-rtd-theme = "^1.0.0"
 
 [tool.poetry.scripts]
 rigol-ds1000z = "rigol_ds1000z.cli:main"

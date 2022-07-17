@@ -12,3 +12,6 @@ poetry.lock
 
 # pytest
 .coverage
+
+# sphinx
+docs/build
