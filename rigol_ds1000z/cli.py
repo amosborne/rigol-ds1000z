@@ -1,6 +1,8 @@
 import argparse
 import sys
 
+import rigol_ds1000z.app.tui as tui
+
 from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_display, process_waveform
 
 parser = argparse.ArgumentParser(
@@ -47,7 +49,7 @@ def save_waveform(source, filename):
 
 def main():
     if not len(sys.argv) > 1:
-        parser.print_help()
+        tui.run()
         return
 
     args = parser.parse_args()
