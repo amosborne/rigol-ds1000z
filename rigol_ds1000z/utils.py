@@ -42,7 +42,7 @@ def process_display(display, show=False, filename=None):
         if show:
             rigol_xpx, rigol_ypx = 800, 480
             rigol_diagin = 17.8 * 0.393701
-            rigol_dpi = sqrt(rigol_xpx ** 2 + rigol_ypx ** 2) / rigol_diagin
+            rigol_dpi = sqrt(rigol_xpx**2 + rigol_ypx**2) / rigol_diagin
             figsize = rigol_xpx / rigol_dpi, rigol_ypx / rigol_dpi
 
             fig = plt.figure(figsize=figsize, dpi=rigol_dpi)
