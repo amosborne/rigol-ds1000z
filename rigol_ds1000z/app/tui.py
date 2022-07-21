@@ -3,9 +3,27 @@ from textual.app import App
 from textual.widgets import Footer, Placeholder
 
 from rigol_ds1000z import Rigol_DS1000Z, find_visa
+from rigol_ds1000z.app.channel_tui import Channel_TUI
 
 
 class Rigol_DS100Z_TUI(App):
+    async def on_load(self, event: events.Load) -> None:
+        await self.bind("q", "quit", "Quit")
+        await self.bind("r", "refresh", "Refresh")
+        await self.bind("1", "channel1", "Ch1")
+        await self.bind("2", "channel2", "Ch2")
+        await self.bind("3", "channel3", "Ch3")
+        await self.bind("4", "channel4", "Ch4")
+        await self.bind("c", "clear", "Clear")
+        await self.bind("a", "autoscale", "Auto")
+        await self.bind("s", "runstop", "Run/Stop")
+        await self.bind("i", "single", "Single")
+        await self.bind("f", "force", "Force")
+        await self.bind("d", "display", "Display")
+        await self.bind("w", "waveform", "Waveform")
+
+        self.oscope = Rigol_DS1000Z(visa=find_visa()).open()
+
     async def on_mount(self, event: events.Mount) -> None:
         grid = await self.view.dock_grid()
 
@@ -35,30 +53,13 @@ class Rigol_DS100Z_TUI(App):
             waveform=Placeholder(name="WAVEFORM"),
             timebase=Placeholder(name="TIMEBASE"),
             trigger=Placeholder(name="TRIGGER"),
-            vert_ch1=Placeholder(name="CH1"),
-            vert_ch2=Placeholder(name="CH2"),
-            vert_ch3=Placeholder(name="CH3"),
-            vert_ch4=Placeholder(name="CH4"),
+            vert_ch1=Channel_TUI(self.oscope, n=1),
+            vert_ch2=Channel_TUI(self.oscope, n=2),
+            vert_ch3=Channel_TUI(self.oscope, n=3),
+            vert_ch4=Channel_TUI(self.oscope, n=4),
             console=Placeholder(name="CONSOLE"),
             footer=Footer(),
         )
-
-    async def on_load(self) -> None:
-        await self.bind("q", "quit", "Quit")
-        await self.bind("r", "refresh", "Refresh")
-        await self.bind("1", "channel1", "Ch1")
-        await self.bind("2", "channel2", "Ch2")
-        await self.bind("3", "channel3", "Ch3")
-        await self.bind("4", "channel4", "Ch4")
-        await self.bind("c", "clear", "Clear")
-        await self.bind("a", "autoscale", "Auto")
-        await self.bind("s", "runstop", "Run/Stop")
-        await self.bind("i", "single", "Single")
-        await self.bind("f", "force", "Force")
-        await self.bind("d", "display", "Display")
-        await self.bind("w", "waveform", "Waveform")
-
-        self.oscope = Rigol_DS1000Z(visa=find_visa()).open()
 
     async def action_refresh(self) -> None:
         # TODO: update all widgets with latest settings

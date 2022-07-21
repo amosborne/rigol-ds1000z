@@ -2,7 +2,6 @@ import argparse
 import sys
 
 import rigol_ds1000z.app.tui as tui
-
 from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_display, process_waveform
 
 parser = argparse.ArgumentParser(

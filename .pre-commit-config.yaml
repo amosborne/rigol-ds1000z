@@ -26,6 +26,6 @@ repos:
       name: pytest
       entry: poetry run pytest
       language: system
-      files: rigol_ds1000z/*
+      files: rigol_ds1000z/src/*
       types: [python]
       pass_filenames: false
