@@ -3,7 +3,9 @@ from typing import Optional
 from rich.console import RenderableType
 from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
 from si_prefix import si_format
+from textual import events
 from textual.reactive import Reactive
 from textual.widget import Widget
 
@@ -12,8 +14,8 @@ from rigol_ds1000z import Rigol_DS1000Z
 CHANNEL_COLORS = {
     1: "bright_yellow",
     2: "bright_cyan",
-    3: "bright_magenta",
-    4: "bright_blue",
+    3: "plum2",
+    4: "turquoise2",
 }
 
 
@@ -36,13 +38,22 @@ class Channel_TUI(Widget):
     offset: Reactive[RenderableType] = Reactive("")
     vrange: Reactive[RenderableType] = Reactive("")
     tcal: Reactive[RenderableType] = Reactive("")
+    label: Reactive[RenderableType] = Reactive("")
+
+    highlight_field: Reactive[RenderableType] = Reactive("")
 
     def __init__(self, oscope: Rigol_DS1000Z, n: int) -> None:
         super().__init__()
         self.oscope = oscope
         self.n = n
+        self.label = "CH{:d}".format(n)
+        self.update_oscope()
 
-        channel = oscope.channel(n)
+    async def on_mouse_move(self, event: events.MouseMove) -> None:
+        self.highlight_field = event.style.meta.get("field")
+
+    def update_oscope(self, **kwargs):
+        channel = self.oscope.channel(self.n, **kwargs)
         self.bwlimit = "20M" if channel.bwlimit else "OFF"
         self.coupling = channel.coupling
         self.probe = "{:.2f}X".format(channel.probe).replace(".00", "")
@@ -58,19 +69,67 @@ class Channel_TUI(Widget):
         table = Table(box=None, show_header=False)
         table.add_column(no_wrap=True, style=CHANNEL_COLORS[self.n])
         table.add_column(no_wrap=True, style=CHANNEL_COLORS[self.n])
-        table.add_row("Scale", self.scale)
-        table.add_row("Offset", self.offset)
-        table.add_row("Range", self.vrange)
-        table.add_row("Delay", self.tcal)
-        table.add_row("Coupling", self.coupling)
-        table.add_row("BW Limit", self.bwlimit)
-        table.add_row("Probe", self.probe)
-        table.add_row("Invert", self.invert)
-        table.add_row("Volts/Div", self.vernier)
-        table.add_row("Unit", self.units)
+        table.add_row("Scale", self._create_field(field="scale"))
+        table.add_row("Offset", self._create_field(field="offset"))
+        table.add_row("Range", self._create_field(field="vrange"))
+        table.add_row("Delay", self._create_field(field="tcal"))
+        table.add_row("Coupling", self._create_field(field="coupling"))
+        table.add_row("BW Limit", self._create_field(field="bwlimit"))
+        table.add_row("Probe", self._create_field(field="probe"))
+        table.add_row("Invert", self._create_field(field="invert"))
+        table.add_row("Volts/Div", self._create_field(field="vernier"))
+        table.add_row("Unit", self._create_field(field="units"))
+        table.add_row("Label", self._create_field(field="label"))
 
         return Panel(
             table,
             title="Channel {:d}".format(self.n),
             border_style=CHANNEL_COLORS[self.n],
         )
+
+    def _create_field(self, field):
+        value = getattr(self, field)
+        callback = "app.edit_channel({:d}, '{:s}')".format(self.n, field)
+        style = "reverse" if self.highlight_field == field else ""
+        text = Text(value, style).on(click=callback, meta={"field": field})
+        return text
+
+    async def edit_scale(self):
+        pass
+
+    async def edit_offset(self):
+        pass
+
+    async def edit_vrange(self):
+        pass
+
+    async def edit_tcal(self):
+        pass
+
+    async def edit_probe(self):
+        pass
+
+    async def edit_coupling(self):
+        COUPLING_OPTIONS = ["AC", "DC", "GND"]
+        idx = COUPLING_OPTIONS.index(self.coupling) + 1
+        idx = 0 if idx == len(COUPLING_OPTIONS) else idx
+        self.update_oscope(coupling=COUPLING_OPTIONS[idx])
+
+    async def edit_bwlimit(self):
+        self.update_oscope(bwlimit=self.bwlimit == "OFF")
+
+    async def edit_invert(self):
+        self.update_oscope(invert=self.invert == "OFF")
+
+    async def edit_vernier(self):
+        self.update_oscope(vernier=self.vernier == "Coarse")
+
+    async def edit_units(self):
+        UNITS_OPTIONS = ["WATT", "AMP", "VOLT", "UNKN"]
+        UNITS_OPTIONS_FIRST = [opt[0] for opt in UNITS_OPTIONS]
+        idx = UNITS_OPTIONS_FIRST.index(self.units.strip("[]")) + 1
+        idx = 0 if idx == len(UNITS_OPTIONS) else idx
+        self.update_oscope(units=UNITS_OPTIONS[idx])
+
+    async def edit_label(self):
+        pass

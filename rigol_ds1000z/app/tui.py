@@ -33,7 +33,7 @@ class Rigol_DS100Z_TUI(App):
         grid.add_column(name="ch4-col")
 
         grid.add_row(name="horiz-row")
-        grid.add_row(name="vert-row")
+        grid.add_row(name="vert-row", fraction=0, min_size=13)
         grid.add_row(name="console-row", fraction=0, min_size=3)
         grid.add_row(name="footer-row", fraction=0, min_size=1)
 
@@ -48,15 +48,17 @@ class Rigol_DS100Z_TUI(App):
         grid.add_areas(console="ch1-col-start|ch4-col-end,console-row")
         grid.add_areas(footer="ch1-col-start|ch4-col-end,footer-row")
 
+        self.channels = [Channel_TUI(self.oscope, n=x + 1) for x in range(4)]
+
         grid.place(
             display=Placeholder(name="DISPLAY"),
             waveform=Placeholder(name="WAVEFORM"),
             timebase=Placeholder(name="TIMEBASE"),
             trigger=Placeholder(name="TRIGGER"),
-            vert_ch1=Channel_TUI(self.oscope, n=1),
-            vert_ch2=Channel_TUI(self.oscope, n=2),
-            vert_ch3=Channel_TUI(self.oscope, n=3),
-            vert_ch4=Channel_TUI(self.oscope, n=4),
+            vert_ch1=self.channels[0],
+            vert_ch2=self.channels[1],
+            vert_ch3=self.channels[2],
+            vert_ch4=self.channels[3],
             console=Placeholder(name="CONSOLE"),
             footer=Footer(),
         )
@@ -108,6 +110,9 @@ class Rigol_DS100Z_TUI(App):
     async def action_waveform(self) -> None:
         # TODO: save all the waveforms with active channel displays
         pass
+
+    async def action_edit_channel(self, channel: int, field: str) -> None:
+        await getattr(self.channels[channel - 1], "edit_{:s}".format(field))()
 
 
 def run():
