@@ -76,8 +76,8 @@ class Rigol_DS100Z_TUI(App):
 
     @disable_while_editing
     async def action_refresh(self) -> None:
-        # TODO: update all widgets with latest settings
-        pass
+        [channel.update_oscope() for channel in self.channels]
+        self.timebase.update_oscope()
 
     @disable_while_editing
     async def action_quit(self) -> None:
@@ -111,6 +111,7 @@ class Rigol_DS100Z_TUI(App):
     @disable_while_editing
     async def action_autoscale(self) -> None:
         self.oscope.autoscale()
+        await self.action_refresh()
 
     @disable_while_editing
     async def action_runstop(self) -> None:

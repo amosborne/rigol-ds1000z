@@ -1,16 +1,10 @@
-from typing import Optional
-
 from rich.console import RenderableType
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
-from si_prefix import si_format
-from textual import events
-from textual.keys import Keys
 from textual.reactive import Reactive
-from textual.widget import Widget
 
 from rigol_ds1000z import Rigol_DS1000Z
+from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI, _float2si
 
 CHANNEL_COLORS = {
     1: "bright_yellow",
@@ -20,14 +14,7 @@ CHANNEL_COLORS = {
 }
 
 
-def _float2si(raw, sigfigs, unit):
-    si = si_format(raw, precision=sigfigs - 1).split()
-    si_mag = "{:#.{:d}g}".format(float(si[0]), sigfigs).strip(".")
-    si_unit = si[1] if len(si) == 2 else ""
-    return si_mag + si_unit + unit
-
-
-class Channel_TUI(Widget):
+class Channel_TUI(TableControl_TUI):
 
     bwlimit: Reactive[RenderableType] = Reactive("")
     coupling: Reactive[RenderableType] = Reactive("")
@@ -41,45 +28,10 @@ class Channel_TUI(Widget):
     tcal: Reactive[RenderableType] = Reactive("")
     label: Reactive[RenderableType] = Reactive("")
 
-    highlight_field: Reactive[RenderableType] = Reactive("")
-    editing_field: Reactive[RenderableType] = Reactive(None)
-    editing_text: Reactive[RenderableType] = Reactive("")
-
     def __init__(self, oscope: Rigol_DS1000Z, n: int) -> None:
-        super().__init__()
-        self.oscope = oscope
         self.n = n
+        super().__init__(oscope)
         self.label = "CH{:d}".format(n)
-        self.update_oscope()
-
-    async def on_mouse_move(self, event: events.MouseMove) -> None:
-        field = event.style.meta.get("field")
-        if self.highlight_field != field:
-            self.highlight_field = field
-            self._edit_field(None)
-
-    async def on_key(self, event: events.Key) -> None:
-        if self.editing_field is None:
-            return
-
-        if event.key == Keys.Escape:
-            self._edit_field(None)
-        elif event.key in (Keys.Backspace, Keys.ControlH):
-            self.editing_text = self.editing_text[:-1]
-        elif event.key in (Keys.Enter, Keys.Return, Keys.ControlM):
-            if self.editing_field == "label":
-                self.label = self.editing_text
-                self._edit_field(None)
-            else:
-                try:
-                    kwargs = {self.editing_field: float(self.editing_text)}
-                except ValueError:
-                    self._edit_field(None)
-                else:
-                    self.update_oscope(**kwargs)
-                    self._edit_field(None)
-        elif event.key != Keys.ControlAt:
-            self.editing_text += event.key
 
     def update_oscope(self, **kwargs):
         channel = self.oscope.channel(self.n, **kwargs)
@@ -117,18 +69,9 @@ class Channel_TUI(Widget):
         )
 
     def _create_field(self, field):
-        editing = self.editing_field == field
-        highlighted = editing or self.highlight_field == field
-        value = self.editing_text if editing else getattr(self, field)
-        style = "reverse" if highlighted else ""
-        callback = "app.edit_channel({:d}, '{:s}')".format(self.n, field)
-        text = Text(value.ljust(9), style).on(click=callback, meta={"field": field})
-        return text
-
-    def _edit_field(self, field):
-        self.editing_field = field
-        self.editing_text = ""
-        self.app.editing = field is not None
+        return super()._create_field(
+            field=field, callback="app.edit_channel({:d}, '{:s}')".format(self.n, field)
+        )
 
     async def edit_scale(self):
         self._edit_field("scale")
