@@ -24,6 +24,7 @@ class TableControl_TUI(Widget, ABC):
     highlight_field: Reactive[RenderableType] = Reactive("")
     editing_field: Reactive[RenderableType] = Reactive(None)
     editing_text: Reactive[RenderableType] = Reactive("")
+    editing_formatter = None
 
     def __init__(self, oscope: Rigol_DS1000Z) -> None:
         super().__init__()
@@ -46,7 +47,7 @@ class TableControl_TUI(Widget, ABC):
             self.editing_text = self.editing_text[:-1]
         elif event.key in (Keys.Enter, Keys.Return, Keys.ControlM):
             try:
-                kwargs = {self.editing_field: float(self.editing_text)}
+                kwargs = {self.editing_field: self.editing_formatter(self.editing_text)}
             except ValueError:
                 self._edit_field(None)
             else:
@@ -64,9 +65,10 @@ class TableControl_TUI(Widget, ABC):
         text = Text(value.ljust(9), style).on(click=callback, meta={"field": field})
         return text
 
-    def _edit_field(self, field: Optional[str]) -> None:
+    def _edit_field(self, field: Optional[str], formatter=float) -> None:
         self.editing_field = field
         self.editing_text = ""
+        self.editing_formatter = formatter
         self.app.editing = field is not None
 
     @abstractmethod

@@ -1,10 +1,15 @@
+import os
+from tkinter import Tk
+from tkinter.filedialog import asksaveasfilename
+
 from textual import events
 from textual.app import App
 from textual.widgets import Footer, Placeholder
 
-from rigol_ds1000z import Rigol_DS1000Z, find_visa
+from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_waveform
 from rigol_ds1000z.app.channel_tui import Channel_TUI
 from rigol_ds1000z.app.timebase_tui import Timebase_TUI
+from rigol_ds1000z.app.waveform_tui import Waveform_TUI
 
 
 def disable_while_editing(func):
@@ -42,10 +47,10 @@ class Rigol_DS100Z_TUI(App):
         grid.add_column(name="ch3-col")
         grid.add_column(name="ch4-col")
 
-        grid.add_row(name="horiz-row")
-        grid.add_row(name="vert-row", fraction=0, min_size=13)
-        grid.add_row(name="console-row", fraction=0, min_size=3)
-        grid.add_row(name="footer-row", fraction=0, min_size=1)
+        grid.add_row(name="horiz-row", min_size=7, max_size=7)
+        grid.add_row(name="vert-row", min_size=13, max_size=13)
+        grid.add_row(name="console-row", min_size=3)
+        grid.add_row(name="footer-row")
 
         grid.add_areas(display="ch1-col,horiz-row")
         grid.add_areas(waveform="ch2-col,horiz-row")
@@ -60,10 +65,11 @@ class Rigol_DS100Z_TUI(App):
 
         self.channels = [Channel_TUI(self.oscope, n=x + 1) for x in range(4)]
         self.timebase = Timebase_TUI(self.oscope)
+        self.waveform = Waveform_TUI(self.oscope)
 
         grid.place(
             display=Placeholder(name="DISPLAY"),
-            waveform=Placeholder(name="WAVEFORM"),
+            waveform=self.waveform,
             timebase=self.timebase,
             trigger=Placeholder(name="TRIGGER"),
             vert_ch1=self.channels[0],
@@ -78,6 +84,7 @@ class Rigol_DS100Z_TUI(App):
     async def action_refresh(self) -> None:
         [channel.update_oscope() for channel in self.channels]
         self.timebase.update_oscope()
+        self.waveform.update_oscope()
 
     @disable_while_editing
     async def action_quit(self) -> None:
@@ -133,8 +140,15 @@ class Rigol_DS100Z_TUI(App):
 
     @disable_while_editing
     async def action_waveform(self) -> None:
-        # TODO: save all the waveforms with active channel displays
-        pass
+        Tk().withdraw()
+        filename = asksaveasfilename(
+            title="Save Waveform As...",
+            initialdir=os.getcwd(),
+            initialfile="waveform.csv",
+            filetypes=[("CSV UTF-8 (Comma delimited)", "*.csv")],
+            defaultextension="csv",
+        )
+        process_waveform(self.oscope.waveform(), filename=filename)
 
     @disable_while_editing
     async def action_edit_channel(self, channel: int, field: str) -> None:
@@ -144,6 +158,12 @@ class Rigol_DS100Z_TUI(App):
     async def action_edit_timebase(self, field: str) -> None:
         await getattr(self.timebase, "edit_{:s}".format(field))()
 
+    @disable_while_editing
+    async def action_edit_waveform(self, field: str) -> None:
+        await getattr(self.waveform, "edit_{:s}".format(field))()
+
 
 def run():
+    if os.name == "nt":  # resize the terminal on Windows
+        os.system("mode con: cols=100 lines=24")
     Rigol_DS100Z_TUI.run(title="rigol-ds1000z")
