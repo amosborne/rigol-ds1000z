@@ -4,6 +4,7 @@ from textual.widgets import Footer, Placeholder
 
 from rigol_ds1000z import Rigol_DS1000Z, find_visa
 from rigol_ds1000z.app.channel_tui import Channel_TUI
+from rigol_ds1000z.app.timebase_tui import Timebase_TUI
 
 
 def disable_while_editing(func):
@@ -58,11 +59,12 @@ class Rigol_DS100Z_TUI(App):
         grid.add_areas(footer="ch1-col-start|ch4-col-end,footer-row")
 
         self.channels = [Channel_TUI(self.oscope, n=x + 1) for x in range(4)]
+        self.timebase = Timebase_TUI(self.oscope)
 
         grid.place(
             display=Placeholder(name="DISPLAY"),
             waveform=Placeholder(name="WAVEFORM"),
-            timebase=Placeholder(name="TIMEBASE"),
+            timebase=self.timebase,
             trigger=Placeholder(name="TRIGGER"),
             vert_ch1=self.channels[0],
             vert_ch2=self.channels[1],
@@ -136,6 +138,10 @@ class Rigol_DS100Z_TUI(App):
     @disable_while_editing
     async def action_edit_channel(self, channel: int, field: str) -> None:
         await getattr(self.channels[channel - 1], "edit_{:s}".format(field))()
+
+    @disable_while_editing
+    async def action_edit_timebase(self, field: str) -> None:
+        await getattr(self.timebase, "edit_{:s}".format(field))()
 
 
 def run():
