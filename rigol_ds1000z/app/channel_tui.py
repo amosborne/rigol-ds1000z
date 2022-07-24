@@ -6,6 +6,7 @@ from rich.table import Table
 from rich.text import Text
 from si_prefix import si_format
 from textual import events
+from textual.keys import Keys
 from textual.reactive import Reactive
 from textual.widget import Widget
 
@@ -36,11 +37,13 @@ class Channel_TUI(Widget):
     units: Reactive[RenderableType] = Reactive("")
     scale: Reactive[RenderableType] = Reactive("")
     offset: Reactive[RenderableType] = Reactive("")
-    vrange: Reactive[RenderableType] = Reactive("")
+    range: Reactive[RenderableType] = Reactive("")
     tcal: Reactive[RenderableType] = Reactive("")
     label: Reactive[RenderableType] = Reactive("")
 
     highlight_field: Reactive[RenderableType] = Reactive("")
+    editing_field: Reactive[RenderableType] = Reactive(None)
+    editing_text: Reactive[RenderableType] = Reactive("")
 
     def __init__(self, oscope: Rigol_DS1000Z, n: int) -> None:
         super().__init__()
@@ -50,7 +53,33 @@ class Channel_TUI(Widget):
         self.update_oscope()
 
     async def on_mouse_move(self, event: events.MouseMove) -> None:
-        self.highlight_field = event.style.meta.get("field")
+        field = event.style.meta.get("field")
+        if self.highlight_field != field:
+            self.highlight_field = field
+            self._edit_field(None)
+
+    async def on_key(self, event: events.Key) -> None:
+        if self.editing_field is None:
+            return
+
+        if event.key == Keys.Escape:
+            self._edit_field(None)
+        elif event.key in (Keys.Backspace, Keys.ControlH):
+            self.editing_text = self.editing_text[:-1]
+        elif event.key in (Keys.Enter, Keys.Return, Keys.ControlM):
+            if self.editing_field == "label":
+                self.label = self.editing_text
+                self._edit_field(None)
+            else:
+                try:
+                    kwargs = {self.editing_field: float(self.editing_text)}
+                except ValueError:
+                    self._edit_field(None)
+                else:
+                    self.update_oscope(**kwargs)
+                    self._edit_field(None)
+        elif event.key != Keys.ControlAt:
+            self.editing_text += event.key
 
     def update_oscope(self, **kwargs):
         channel = self.oscope.channel(self.n, **kwargs)
@@ -62,7 +91,7 @@ class Channel_TUI(Widget):
         self.units = "[{:s}]".format(channel.units[0])
         self.scale = _float2si(channel.scale, sigfigs=3, unit=channel.units[0])
         self.offset = _float2si(channel.offset, sigfigs=4, unit=channel.units[0])
-        self.vrange = _float2si(channel.range, sigfigs=3, unit=channel.units[0])
+        self.range = _float2si(channel.range, sigfigs=3, unit=channel.units[0])
         self.tcal = _float2si(channel.tcal, sigfigs=3, unit="s")
 
     def render(self) -> RenderableType:
@@ -71,7 +100,7 @@ class Channel_TUI(Widget):
         table.add_column(no_wrap=True, style=CHANNEL_COLORS[self.n])
         table.add_row("Scale", self._create_field(field="scale"))
         table.add_row("Offset", self._create_field(field="offset"))
-        table.add_row("Range", self._create_field(field="vrange"))
+        table.add_row("Range", self._create_field(field="range"))
         table.add_row("Delay", self._create_field(field="tcal"))
         table.add_row("Coupling", self._create_field(field="coupling"))
         table.add_row("BW Limit", self._create_field(field="bwlimit"))
@@ -88,26 +117,33 @@ class Channel_TUI(Widget):
         )
 
     def _create_field(self, field):
-        value = getattr(self, field)
+        editing = self.editing_field == field
+        highlighted = editing or self.highlight_field == field
+        value = self.editing_text if editing else getattr(self, field)
+        style = "reverse" if highlighted else ""
         callback = "app.edit_channel({:d}, '{:s}')".format(self.n, field)
-        style = "reverse" if self.highlight_field == field else ""
-        text = Text(value, style).on(click=callback, meta={"field": field})
+        text = Text(value.ljust(9), style).on(click=callback, meta={"field": field})
         return text
 
+    def _edit_field(self, field):
+        self.editing_field = field
+        self.editing_text = ""
+        self.app.editing = field is not None
+
     async def edit_scale(self):
-        pass
+        self._edit_field("scale")
 
     async def edit_offset(self):
-        pass
+        self._edit_field("offset")
 
-    async def edit_vrange(self):
-        pass
+    async def edit_range(self):
+        self._edit_field("range")
 
     async def edit_tcal(self):
-        pass
+        self._edit_field("tcal")
 
     async def edit_probe(self):
-        pass
+        self._edit_field("probe")
 
     async def edit_coupling(self):
         COUPLING_OPTIONS = ["AC", "DC", "GND"]
@@ -132,4 +168,4 @@ class Channel_TUI(Widget):
         self.update_oscope(units=UNITS_OPTIONS[idx])
 
     async def edit_label(self):
-        pass
+        self._edit_field("label")
