@@ -28,7 +28,7 @@ class Timebase_TUI(TableControl_TUI):
         table = Table(box=None, show_header=False)
         table.add_column(no_wrap=True)
         table.add_column(no_wrap=True)
-        table.add_row("Time Base", self._create_field(field="mode"))
+        table.add_row("Time Base  ", self._create_field(field="mode"))
         table.add_row("Delayed", self._create_field(field="delay_enable"))
         table.add_row("Scale", self._create_field(field="scale"))
         table.add_row("Offset", self._create_field(field="offset"))

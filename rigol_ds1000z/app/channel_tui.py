@@ -58,7 +58,7 @@ class Channel_TUI(TableControl_TUI):
         table.add_row("BW Limit", self._create_field(field="bwlimit"))
         table.add_row("Probe", self._create_field(field="probe"))
         table.add_row("Invert", self._create_field(field="invert"))
-        table.add_row("Volts/Div", self._create_field(field="vernier"))
+        table.add_row("Volts/Div  ", self._create_field(field="vernier"))
         table.add_row("Unit", self._create_field(field="units"))
         table.add_row("Label", self._create_field(field="label"))
 

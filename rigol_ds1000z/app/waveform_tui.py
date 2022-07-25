@@ -32,7 +32,7 @@ class Waveform_TUI(TableControl_TUI):
         table.add_column(no_wrap=True)
         table.add_row("Source", self._create_field(field="source"))
         table.add_row("Mode", self._create_field(field="mode"))
-        table.add_row("Format   ", self._create_field(field="format"))
+        table.add_row("Format     ", self._create_field(field="format"))
         table.add_row("Start", self._create_field(field="start"))
         table.add_row("Stop", self._create_field(field="stop"))
 

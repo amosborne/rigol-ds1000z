@@ -5,12 +5,14 @@ from tkinter.filedialog import asksaveasfilename
 from textual import events
 from textual.app import App
 from textual.widgets import Placeholder
+from rich.console import Console
 
-from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_waveform
+from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_waveform, process_display
 from rigol_ds1000z.app.channel_tui import Channel_TUI
 from rigol_ds1000z.app.shortcuts import Shortcuts_Footer, Shortcuts_Header
 from rigol_ds1000z.app.timebase_tui import Timebase_TUI
 from rigol_ds1000z.app.waveform_tui import Waveform_TUI
+from rigol_ds1000z.app.display_tui import Display_TUI
 
 
 def disable_while_editing(func):
@@ -69,12 +71,13 @@ class Rigol_DS100Z_TUI(App):
         self.header = Shortcuts_Header()
         self.channels = [Channel_TUI(self.oscope, n=x + 1) for x in range(4)]
         self.timebase = Timebase_TUI(self.oscope)
+        self.oscopedisplay = Display_TUI(self.oscope)
         self.waveform = Waveform_TUI(self.oscope)
         self.footer = Shortcuts_Footer()
 
         grid.place(
             header=self.header,
-            display=Placeholder(name="DISPLAY"),
+            display=self.oscopedisplay,
             waveform=self.waveform,
             timebase=self.timebase,
             trigger=Placeholder(name="TRIGGER"),
@@ -93,6 +96,7 @@ class Rigol_DS100Z_TUI(App):
         [channel.update_oscope() for channel in self.channels]
         self.timebase.update_oscope()
         self.waveform.update_oscope()
+        self.oscopedisplay.update_oscope()
         self.footer.channel1 = self.oscope.channel(n=1).display
         self.footer.channel2 = self.oscope.channel(n=2).display
         self.footer.channel3 = self.oscope.channel(n=3).display
@@ -151,8 +155,25 @@ class Rigol_DS100Z_TUI(App):
 
     @disable_while_editing
     async def action_display(self) -> None:
-        # TODO: capture the oscope display and screenshot the tui
-        pass
+        Tk().withdraw()
+        filename = asksaveasfilename(
+            title="Save Display As...",
+            initialdir=os.getcwd(),
+            initialfile="display.png",
+            filetypes=[(".png", "*.png")],
+            defaultextension="png",
+        )
+        if filename:
+            process_display(self.oscope.display(), filename=filename)
+
+            console = Console(
+                width=self.console.width, height=self.console.height, record=True
+            )
+            console.print(self.view)
+            console.save_svg(
+                os.path.splitext(filename)[0] + "_softpanel.svg", title="rigol-ds1000z"
+            )
+            self.refresh()
 
     @disable_while_editing
     async def action_waveform(self) -> None:
@@ -179,8 +200,12 @@ class Rigol_DS100Z_TUI(App):
     async def action_edit_waveform(self, field: str) -> None:
         await getattr(self.waveform, "edit_{:s}".format(field))()
 
+    @disable_while_editing
+    async def action_edit_display(self, field: str) -> None:
+        await getattr(self.oscopedisplay, "edit_{:s}".format(field))()
+
 
 def run():
     if os.name == "nt":  # resize the terminal on Windows
-        os.system("mode con: cols=100 lines=25")
+        os.system("mode con: cols=108 lines=25")
     Rigol_DS100Z_TUI.run(title="rigol-ds1000z")
