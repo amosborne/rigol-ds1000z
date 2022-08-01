@@ -199,7 +199,7 @@ class Rigol_DS100Z_TUI(App):
     @disable_while_editing
     async def action_edit_channel(self, channel: int, field: str) -> None:
         await getattr(self.channels[channel - 1], "edit_{:s}".format(field))()
-        await self.action_refresh()
+        self.trigger.update_oscope()
 
     @disable_while_editing
     async def action_edit_timebase(self, field: str) -> None:

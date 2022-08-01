@@ -15,3 +15,6 @@ poetry.lock
 
 # sphinx
 docs/build
+
+# private
+docs/videos

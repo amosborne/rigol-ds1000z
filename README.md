@@ -1,79 +1,102 @@
 # rigol-ds1000z
 
-Python library for interfacing with Rigol DS1000Z series oscilloscopes.
+## An oscilloscope user interface that never leaves the terminal.
 
-This package differs from the alternatives by:
-1. Flattening the communication interface with the test equipment so that code can be written in a more compact form.
-2. Providing a command line interface for easy display and waveform data capture.
+![RigolDS1000Z_StillScreen](docs/rigol-ds1000z.png)
 
-This package strives to maintain the verbiage used in the [Rigol DS1000Z programming manual](https://beyondmeasure.rigoltech.com/acton/attachment/1579/f-0386/1/-/-/-/-/DS1000Z_Programming%20Guide_EN.pdf) as closely as possible. Aside from basic type-casting, command arguments are not validated and instrument responses are not post-processed. Separate utility routines are provided for post-processing display and waveform data.
+![Rigol_DS1000Z_Animated](docs/rigol-ds1000z.gif)
 
-A function call will send commands associated with the arguments provided and a data structure is always returned with the queried values that belong under that function's domain. Not all interfaces are fully implemented. The basic write, read, and query commands are provided for the user to use in the abscense of a functional interface.
-
-All commands are issued once at a time with a wait after instruction appended. The autoscale and IEEE reset commands enforce a ten and five second sleep respectively to avoid a VISA serial communication timeout or other odd behavior.
-
-Extensive hardware testing has been performed with a Rigol DS1054Z oscilloscope.
-
-Inspired by similar packages iteratively developed by [@jtambasco](https://github.com/jtambasco/RigolOscilloscope), [@jeanyvesb9](https://github.com/jeanyvesb9/Rigol1000z), and [@AlexZettler](https://github.com/AlexZettler/Rigol1000z).
-
-## Usage
-
-This package is available on [PyPI](https://pypi.org/): `pip install rigol-ds1000z`.
-
-The command line interface saves to file a display capture or waveform data from a Rigol DS1000Z series oscilloscope. The first valid VISA address identified is utilized by default.
+## A simple command line tool for grabbing data and pictures.
 
 ```shell
 rigol-ds1000z --help
-rigol-ds1000z --display path/to/file.png
-rigol-ds1000z --waveform src path/to/file.csv
+rigol-ds1000z --visa resource --display path/to/file.png
+rigol-ds1000z --visa resource --waveform source path/to/file.csv 
 ```
 
-Example code is shown below and also provided as part of this repository. See the status section for the summary of the implemented functional interfaces or browse the generated documentation [here](https://htmlpreview.github.io/?https://github.com/amosborne/rigol-ds1000z/blob/main/docs/rigol_ds1000z/index.html).
+Unless a VISA resource is specified with the `--visa` argument, the CLI will search for a Rigol DS1000Z series oscilloscope and connect to the first one it finds.
+
+The CLI can capture and save to file an image of the display (`--display`) or the waveform data of the specified source channel (`--waveform`).
+
+## A compact Python library for automating test procedures.
 
 ```python
 from rigol_ds1000z import Rigol_DS1000Z
-from rigol_ds1000z import find_visa, process_display, process_waveform
+from rigol_ds1000z import process_display, process_waveform
 
-# find visa address
-visa = find_visa()
-
-with Rigol_DS1000Z(visa) as oscope:
-    # run and autoscale
-    oscope.run()
+with Rigol_DS1000Z() as oscope:
+    # autoscale
     oscope.autoscale()
 
-    # reset, self-test, return queried ieee values
+    # reset to defaults and run self-test
     ieee = oscope.ieee(rst=True, tst=True)
+
+    # print IEEE 488.2 instrument identifier
     print(ieee.idn)
 
-    # configure channels, return queried channel values
-    ch2 = oscope.channel(2, probe=10, coupling="AC", bwlimit=True)
-    ch3 = oscope.channel(3, display=True)
-    print(ch2.scale, ch3.scale)
+    # configure some channels, the horizontal scale, and the trigger
+    channel2 = oscope.channel(2, probe=10, coupling="AC", bwlimit=True)
+    channel3 = oscope.channel(3, display=True)
+    timebase = oscope.timebase(main_scale=1e-3, main_offset=200e-6)
+    trigger = oscope.trigger(mode="EDGE", source=3, coupling="DC", level=1.2)
 
-    # send SCPI command to clear the display
-    oscope.write(":DISP:CLE")
+    # send an SCPI command
+    oscope.write(":MATH:DISPlay ON")
+
+    # capture the display image
+    display = oscope.display()
+    process_display(display, filename="display_capture.png")
+
+    # capture the channel 2 waveform data
+    waveform = oscope.waveform(source=2)
+    process_waveform(waveform, filename="waveform_capture.csv")
 
 ```
 
-## Status
+## Installation instructions and notes to the user.
 
-The following SCPI commands are implemented as functional interfaces:
-- All base-level commands (ex. `AUT`, `RUN`, `STOP`).
-- All IEEE488.2 common commands (ex. `IDN?`, `*RST`, `TST?`).
-- All channel commands (ex. `:CHAN1:PROB`).
-- All timebase commands (ex. `:TIM:MOD`, `:TIM:DEL:SCAL`).
-- All waveform commands (ex. `:WAV:SOUR`, `:WAV:DATA?`).
-- The display data query `:DISP:DATA?`.
+`pip install rigol-ds1000z`
 
-## Development Notes
+Available on [PyPI](https://pypi.org/rigol-ds1000z/). This package uses[PyVISA](https://pyvisa.readthedocs.io/en/1.12.0/introduction/getting.html) to communicate with the oscilloscope, which requires that the user also installs the National Instrument's VISA library for their operating system.
+
+This software has been tested on Windows (Command Prompt and PowerShell), although it should be possible to run in other shells and/or operating systems. For best visual performance, a default of white text on a black background is recommended.
+
+## Software development and references.
+
+[Read the documentation.](https://amosborne.github.io/rigol-ds1000z/)
+
+[Rigol DS1000Z programming manual.](https://beyondmeasure.rigoltech.com/acton/attachment/1579/f-0386/1/-/-/-/-/DS1000Z_Programming%20Guide_EN.pdf)
+
+| Command Category | Coverage |
+| --- | --- |
+| AUToscale, etc. | YES |
+| ACQuire | NO |
+| CALibrate | NO |
+| CHANnel | YES |
+| CURSor | NO |
+| DECoder | NO |
+| DISPlay | YES |
+| ETABle | NO |
+| FUNCtion | NO |
+| IEEE 488.2 | YES |
+| LA | NO |
+| LAN | NO |
+| MATH | NO |
+| MASK | NO |
+| MEASure | NO |
+| REFerence | NO |
+| STORage | NO |
+| SYSTem | NO |
+| TIMebase | YES |
+| TRIGger | PARTIAL |
+| WAVeform | YES |
 
 - Package management by [Poetry](https://python-poetry.org/).
 - Automated processing hooks by [pre-commit](https://pre-commit.com/).
 - Code formatting in compliance with [PEP8](https://www.python.org/dev/peps/pep-0008/) by [isort](https://pycqa.github.io/isort/), [black](https://github.com/psf/black), and [flake8](https://gitlab.com/pycqa/flake8).
 - Static type checking in compliance with [PEP484](https://www.python.org/dev/peps/pep-0484/) by [mypy](http://www.mypy-lang.org/).
 - Test execution with random ordering and code coverage analysis by [pytest](https://docs.pytest.org/en/6.2.x/).
-- Automated documentation generation by [pdoc](https://github.com/pdoc3/pdoc).
+- Automated documentation generation by [sphinx](https://www.sphinx-doc.org/en/master/).
 
 Installing the development environment requires running the following command sequence.
 
@@ -82,4 +105,4 @@ poetry install
 poetry run pre-commit install
 ```
 
-In order for all tests to pass, an oscilloscope must be connected and channel 2 must be connected to the calibration square wave.
+In order for all tests to pass channel 2 must be connected to the calibration square wave.
