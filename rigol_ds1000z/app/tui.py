@@ -5,13 +5,13 @@ from tkinter.filedialog import asksaveasfilename
 from rich.console import Console
 from textual import events
 from textual.app import App
-from textual.widgets import Placeholder
 
 from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_display, process_waveform
 from rigol_ds1000z.app.channel_tui import Channel_TUI
 from rigol_ds1000z.app.display_tui import Display_TUI
 from rigol_ds1000z.app.shortcuts import Shortcuts_Footer, Shortcuts_Header
 from rigol_ds1000z.app.timebase_tui import Timebase_TUI
+from rigol_ds1000z.app.trigger_tui import Trigger_TUI
 from rigol_ds1000z.app.waveform_tui import Waveform_TUI
 
 
@@ -51,7 +51,7 @@ class Rigol_DS100Z_TUI(App):
         grid.add_column(name="ch4-col")
 
         grid.add_row(name="header-row")
-        grid.add_row(name="horiz-row", min_size=7, max_size=7)
+        grid.add_row(name="horiz-row", min_size=11, max_size=11)
         grid.add_row(name="vert-row", min_size=13, max_size=13)
         grid.add_row(name="footer-row")
 
@@ -71,6 +71,7 @@ class Rigol_DS100Z_TUI(App):
         self.timebase = Timebase_TUI(self.oscope)
         self.oscopedisplay = Display_TUI(self.oscope)
         self.waveform = Waveform_TUI(self.oscope)
+        self.trigger = Trigger_TUI(self.oscope, channels=self.channels)
         self.footer = Shortcuts_Footer()
 
         grid.place(
@@ -78,7 +79,7 @@ class Rigol_DS100Z_TUI(App):
             display=self.oscopedisplay,
             waveform=self.waveform,
             timebase=self.timebase,
-            trigger=Placeholder(name="TRIGGER"),
+            trigger=self.trigger,
             vert_ch1=self.channels[0],
             vert_ch2=self.channels[1],
             vert_ch3=self.channels[2],
@@ -94,10 +95,13 @@ class Rigol_DS100Z_TUI(App):
         self.timebase.update_oscope()
         self.waveform.update_oscope()
         self.oscopedisplay.update_oscope()
+        self.trigger.update_oscope()
         self.footer.channel1 = self.oscope.channel(n=1).display
         self.footer.channel2 = self.oscope.channel(n=2).display
         self.footer.channel3 = self.oscope.channel(n=3).display
         self.footer.channel4 = self.oscope.channel(n=4).display
+        self.header.runstop = self.oscope.trigger().status != "STOP"
+        self.header.singlestatus = self.oscope.trigger().status == "WAIT"
 
     @disable_while_editing
     async def action_quit(self) -> None:
@@ -139,19 +143,26 @@ class Rigol_DS100Z_TUI(App):
 
     @disable_while_editing
     async def action_runstop(self) -> None:
-        # TODO: check trigger status, toggle run/stop
-        pass
+        if self.trigger.status == "STOP":
+            self.oscope.run()
+        else:
+            self.oscope.stop()
+
+        await self.action_refresh()
 
     @disable_while_editing
     async def action_single(self) -> None:
         self.oscope.single()
+        await self.action_refresh()
 
     @disable_while_editing
     async def action_force(self) -> None:
         self.oscope.tforce()
+        await self.action_refresh()
 
     @disable_while_editing
     async def action_display(self) -> None:
+        await self.action_refresh()
         Tk().withdraw()
         filename = asksaveasfilename(
             title="Save Display As...",
@@ -188,6 +199,7 @@ class Rigol_DS100Z_TUI(App):
     @disable_while_editing
     async def action_edit_channel(self, channel: int, field: str) -> None:
         await getattr(self.channels[channel - 1], "edit_{:s}".format(field))()
+        await self.action_refresh()
 
     @disable_while_editing
     async def action_edit_timebase(self, field: str) -> None:
@@ -201,8 +213,12 @@ class Rigol_DS100Z_TUI(App):
     async def action_edit_display(self, field: str) -> None:
         await getattr(self.oscopedisplay, "edit_{:s}".format(field))()
 
+    @disable_while_editing
+    async def action_edit_trigger(self, field: str) -> None:
+        await getattr(self.trigger, "edit_{:s}".format(field))()
+
 
 def run():
     if os.name == "nt":  # resize the terminal on Windows
-        os.system("mode con: cols=108 lines=22")
+        os.system("mode con: cols=108 lines=26")
     Rigol_DS100Z_TUI.run(title="rigol-ds1000z")

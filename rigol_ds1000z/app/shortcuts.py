@@ -38,7 +38,32 @@ class Shortcuts(Widget):
 
 
 class Shortcuts_Header(Shortcuts):
+    runstop: Reactive[RenderableType] = Reactive(True)
+    singlestatus: Reactive[RenderableType] = Reactive(False)
+
     def render(self) -> RenderableType:
+        runstop_style = (
+            "black on sea_green2"
+            if self.runstop != (self.highlight_key == "s")
+            else "black on red1"
+        )
+        runstop_text = Text.assemble(
+            (" S ", runstop_style),
+            (" Run/Stop ", "white on dark_green"),
+            meta={"key": "s", "@click": "app.press('s')"},
+        )
+
+        single_style = (
+            "black on sea_green2"
+            if self.singlestatus != (self.highlight_key == "i")
+            else "default on default"
+        )
+        single_text = Text.assemble(
+            (" I ", single_style),
+            (" Single ", "white on dark_green"),
+            meta={"key": "i", "@click": "app.press('i')"},
+        )
+
         return (
             self._simple_button("q", "Quit")
             + self._simple_button("r", "Refresh")
@@ -46,8 +71,8 @@ class Shortcuts_Header(Shortcuts):
             + self._simple_button("w", "Waveform")
             + self._simple_button("c", "Clear")
             + self._simple_button("a", "Autoscale")
-            + self._simple_button("s", "Run/Stop")
-            + self._simple_button("i", "Single")
+            + runstop_text
+            + single_text
             + self._simple_button("f", "Force")
         )
 

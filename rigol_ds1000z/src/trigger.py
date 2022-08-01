@@ -1,6 +1,6 @@
 from collections import namedtuple
-from typing import Optional, Union
 from time import sleep
+from typing import Optional, Union
 
 TRIGGER = namedtuple(
     "TRIGGER",
@@ -41,6 +41,8 @@ def trigger(
         return trigger_edge(
             oscope, trigger_query, holdoff, coupling, source, slope, level
         )
+
+    return trigger_query
 
 
 def trigger_edge(oscope, trigger_query, holdoff, coupling, source, slope, level):
