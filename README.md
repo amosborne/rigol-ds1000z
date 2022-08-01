@@ -2,23 +2,23 @@
 
 ## An oscilloscope user interface that never leaves the terminal.
 
-![RigolDS1000Z_StillScreen](docs/rigol-ds1000z.png)
+![RigolDS1000Z_StillScreen](docs/rigol_ds1000z.png)
 
-![Rigol_DS1000Z_Animated](docs/rigol-ds1000z.gif)
+![Rigol_DS1000Z_Animated](docs/rigol_ds1000z.gif)
 
 ## A simple command line tool for grabbing data and pictures.
 
 ```shell
 rigol-ds1000z --help
 rigol-ds1000z --visa resource --display path/to/file.png
-rigol-ds1000z --visa resource --waveform source path/to/file.csv 
+rigol-ds1000z --visa resource --waveform src path/to/file.csv 
 ```
 
 Unless a VISA resource is specified with the `--visa` argument, the CLI will search for a Rigol DS1000Z series oscilloscope and connect to the first one it finds.
 
 The CLI can capture and save to file an image of the display (`--display`) or the waveform data of the specified source channel (`--waveform`).
 
-## A compact Python library for automating test procedures.
+## A compact Python interface for automating test procedures.
 
 ```python
 from rigol_ds1000z import Rigol_DS1000Z
@@ -34,7 +34,7 @@ with Rigol_DS1000Z() as oscope:
     # print IEEE 488.2 instrument identifier
     print(ieee.idn)
 
-    # configure some channels, the horizontal scale, and the trigger
+    # configure channels, the horizontal scale, and the trigger
     channel2 = oscope.channel(2, probe=10, coupling="AC", bwlimit=True)
     channel3 = oscope.channel(3, display=True)
     timebase = oscope.timebase(main_scale=1e-3, main_offset=200e-6)
@@ -57,7 +57,7 @@ with Rigol_DS1000Z() as oscope:
 
 `pip install rigol-ds1000z`
 
-Available on [PyPI](https://pypi.org/rigol-ds1000z/). This package uses[PyVISA](https://pyvisa.readthedocs.io/en/1.12.0/introduction/getting.html) to communicate with the oscilloscope, which requires that the user also installs the National Instrument's VISA library for their operating system.
+Available on [PyPI](https://pypi.org/project/rigol-ds1000z/). This package uses [PyVISA](https://pyvisa.readthedocs.io/en/1.12.0/introduction/getting.html) to communicate with the oscilloscope, which requires that the user also installs the National Instrument's VISA library for their operating system.
 
 This software has been tested on Windows (Command Prompt and PowerShell), although it should be possible to run in other shells and/or operating systems. For best visual performance, a default of white text on a black background is recommended.
 
@@ -70,23 +70,23 @@ This software has been tested on Windows (Command Prompt and PowerShell), althou
 | Command Category | Coverage |
 | --- | --- |
 | AUToscale, etc. | YES |
-| ACQuire | NO |
-| CALibrate | NO |
+| ACQuire | no |
+| CALibrate | no |
 | CHANnel | YES |
-| CURSor | NO |
-| DECoder | NO |
+| CURSor | no |
+| DECoder | no |
 | DISPlay | YES |
-| ETABle | NO |
-| FUNCtion | NO |
+| ETABle | no |
+| FUNCtion | no |
 | IEEE 488.2 | YES |
-| LA | NO |
-| LAN | NO |
-| MATH | NO |
-| MASK | NO |
-| MEASure | NO |
-| REFerence | NO |
-| STORage | NO |
-| SYSTem | NO |
+| LA | no |
+| LAN | no |
+| MATH | no |
+| MASK | no |
+| MEASure | no |
+| REFerence | no |
+| STORage | no |
+| SYSTem | no |
 | TIMebase | YES |
 | TRIGger | PARTIAL |
 | WAVeform | YES |
