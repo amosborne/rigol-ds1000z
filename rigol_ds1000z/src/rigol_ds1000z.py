@@ -4,11 +4,12 @@ from typing import Optional
 
 from pyvisa import ResourceManager
 
-from .channel import channel
-from .display import display
-from .ieee import ieee
-from .timebase import timebase
-from .waveform import waveform
+from rigol_ds1000z.src.channel import channel
+from rigol_ds1000z.src.display import display
+from rigol_ds1000z.src.ieee import ieee
+from rigol_ds1000z.src.timebase import timebase
+from rigol_ds1000z.src.trigger import trigger
+from rigol_ds1000z.src.waveform import waveform
 
 
 class Rigol_DS1000Z:
@@ -19,6 +20,7 @@ class Rigol_DS1000Z:
         self.timebase = partial(timebase, self)
         self.display = partial(display, self)
         self.waveform = partial(waveform, self)
+        self.trigger = partial(trigger, self)
 
     def __enter__(self):
         return self.open()

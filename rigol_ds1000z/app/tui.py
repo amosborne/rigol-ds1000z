@@ -2,17 +2,17 @@ import os
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
 
+from rich.console import Console
 from textual import events
 from textual.app import App
 from textual.widgets import Placeholder
-from rich.console import Console
 
-from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_waveform, process_display
+from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_display, process_waveform
 from rigol_ds1000z.app.channel_tui import Channel_TUI
+from rigol_ds1000z.app.display_tui import Display_TUI
 from rigol_ds1000z.app.shortcuts import Shortcuts_Footer, Shortcuts_Header
 from rigol_ds1000z.app.timebase_tui import Timebase_TUI
 from rigol_ds1000z.app.waveform_tui import Waveform_TUI
-from rigol_ds1000z.app.display_tui import Display_TUI
 
 
 def disable_while_editing(func):
@@ -53,7 +53,6 @@ class Rigol_DS100Z_TUI(App):
         grid.add_row(name="header-row")
         grid.add_row(name="horiz-row", min_size=7, max_size=7)
         grid.add_row(name="vert-row", min_size=13, max_size=13)
-        grid.add_row(name="console-row", min_size=3)
         grid.add_row(name="footer-row")
 
         grid.add_areas(header="ch1-col-start|ch4-col-end,header-row")
@@ -65,7 +64,6 @@ class Rigol_DS100Z_TUI(App):
         grid.add_areas(vert_ch2="ch2-col,vert-row")
         grid.add_areas(vert_ch3="ch3-col,vert-row")
         grid.add_areas(vert_ch4="ch4-col,vert-row")
-        grid.add_areas(console="ch1-col-start|ch4-col-end,console-row")
         grid.add_areas(footer="ch1-col-start|ch4-col-end,footer-row")
 
         self.header = Shortcuts_Header()
@@ -85,7 +83,6 @@ class Rigol_DS100Z_TUI(App):
             vert_ch2=self.channels[1],
             vert_ch3=self.channels[2],
             vert_ch4=self.channels[3],
-            console=Placeholder(name="CONSOLE"),
             footer=self.footer,
         )
 
@@ -207,5 +204,5 @@ class Rigol_DS100Z_TUI(App):
 
 def run():
     if os.name == "nt":  # resize the terminal on Windows
-        os.system("mode con: cols=108 lines=25")
+        os.system("mode con: cols=108 lines=22")
     Rigol_DS100Z_TUI.run(title="rigol-ds1000z")

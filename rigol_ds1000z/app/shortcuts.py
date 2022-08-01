@@ -45,7 +45,7 @@ class Shortcuts_Header(Shortcuts):
             + self._simple_button("d", "Display")
             + self._simple_button("w", "Waveform")
             + self._simple_button("c", "Clear")
-            + self._simple_button("a", "Auto")
+            + self._simple_button("a", "Autoscale")
             + self._simple_button("s", "Run/Stop")
             + self._simple_button("i", "Single")
             + self._simple_button("f", "Force")
