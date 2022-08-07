@@ -10,8 +10,8 @@
 
 ```shell
 rigol-ds1000z --help
-rigol-ds1000z --visa resource --display path/to/file.png
-rigol-ds1000z --visa resource --waveform src path/to/file.csv 
+rigol-ds1000z --visa rsrc --display path/to/file.png
+rigol-ds1000z --visa rsrc --waveform src path/to/file.csv 
 ```
 
 Unless a VISA resource is specified with the `--visa` argument, the CLI will search for a Rigol DS1000Z series oscilloscope and connect to the first one it finds.
@@ -20,36 +20,46 @@ The CLI can capture and save to file an image of the display (`--display`) or th
 
 ## A compact Python interface for automating test procedures.
 
+See the provided [examples](examples/) and read the [documentation.](https://amosborne.github.io/rigol-ds1000z/)
+
 ```python
 from rigol_ds1000z import Rigol_DS1000Z
 from rigol_ds1000z import process_display, process_waveform
+from time import sleep
 
 with Rigol_DS1000Z() as oscope:
-    # autoscale
-    oscope.autoscale()
-
-    # reset to defaults and run self-test
-    ieee = oscope.ieee(rst=True, tst=True)
-
-    # print IEEE 488.2 instrument identifier
+    # reset to defaults and print the IEEE 488.2 instrument identifier
+    ieee = oscope.ieee(rst=True)
     print(ieee.idn)
 
-    # configure channels, the horizontal scale, and the trigger
-    channel2 = oscope.channel(2, probe=10, coupling="AC", bwlimit=True)
-    channel3 = oscope.channel(3, display=True)
-    timebase = oscope.timebase(main_scale=1e-3, main_offset=200e-6)
-    trigger = oscope.trigger(mode="EDGE", source=3, coupling="DC", level=1.2)
+    # configure channels 1 and 2, the timebase, and the trigger
+    channel1 = oscope.channel(
+        1, probe=1, coupling="DC", offset=3.0, scale=2, bwlimit=True, display=True
+    )
+    channel2 = oscope.channel(
+        2, probe=1, coupling="AC", offset=1.5, scale=1, bwlimit=True, display=True
+    )
+    timebase = oscope.timebase(main_scale=200e-6)
+    trigger = oscope.trigger(mode="EDGE", source=2, coupling="DC", level=0)
 
-    # send an SCPI command
+    # send an SCPI commands to setup the math channel
     oscope.write(":MATH:DISPlay ON")
+    oscope.write(":MATH:OPER SUBT")
+    oscope.write(":MATH:SOUR2 CHAN2")
+    oscope.write(":MATH:SCAL 5")
+    oscope.write(":MATH:OFFS -10")
+
+    # wait three seconds then single trigger
+    sleep(3)
+    oscope.single()
 
     # capture the display image
     display = oscope.display()
-    process_display(display, filename="display_capture.png")
+    process_display(display, show=True)
 
-    # capture the channel 2 waveform data
-    waveform = oscope.waveform(source=2)
-    process_waveform(waveform, filename="waveform_capture.csv")
+    # plot the channel 1 waveform data
+    waveform = oscope.waveform(source=1)
+    process_waveform(waveform, show=True)
 
 ```
 
@@ -61,9 +71,9 @@ Available on [PyPI](https://pypi.org/project/rigol-ds1000z/). This package uses 
 
 This software has been tested on Windows (Command Prompt and PowerShell), although it should be possible to run in other shells and/or operating systems. For best visual performance, a default of white text on a black background is recommended.
 
-## Software development and references.
+The software does insert some sleep time on specific commands (such as reset and autoscale) to ensure fluid operation of the oscilloscope. The user may find that they require additional downtime after certain command sequences.
 
-[Read the documentation.](https://amosborne.github.io/rigol-ds1000z/)
+## Software development and references.
 
 [Rigol DS1000Z programming manual.](https://beyondmeasure.rigoltech.com/acton/attachment/1579/f-0386/1/-/-/-/-/DS1000Z_Programming%20Guide_EN.pdf)
 

@@ -10,11 +10,12 @@ from rigol_ds1000z.src.ieee import ieee
 from rigol_ds1000z.src.timebase import timebase
 from rigol_ds1000z.src.trigger import trigger
 from rigol_ds1000z.src.waveform import waveform
+from rigol_ds1000z.utils import find_visa
 
 
 class Rigol_DS1000Z:
-    def __init__(self, visa: str):
-        self.visa_name = visa
+    def __init__(self, visa: Optional[str] = None):
+        self.visa_name = find_visa() if visa is None else visa
         self.ieee = partial(ieee, self)
         self.channel = partial(channel, self)
         self.timebase = partial(timebase, self)
@@ -50,15 +51,20 @@ class Rigol_DS1000Z:
 
     def clear(self):
         self.write(":CLE")
+        sleep(1)
 
     def run(self):
         self.write(":RUN")
+        sleep(1)
 
     def stop(self):
         self.write(":STOP")
+        sleep(1)
 
     def single(self):
         self.write(":SING")
+        sleep(1)
 
     def tforce(self):
         self.write(":TFOR")
+        sleep(1)

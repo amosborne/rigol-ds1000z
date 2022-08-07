@@ -1,11 +1,11 @@
 from pytest import approx, fixture
 
-from rigol_ds1000z import Rigol_DS1000Z, find_visa
+from rigol_ds1000z import Rigol_DS1000Z
 
 
 @fixture(scope="function")
 def oscope():
-    with Rigol_DS1000Z(find_visa()) as oscope:
+    with Rigol_DS1000Z() as oscope:
         oscope.ieee(rst=True)
         yield oscope
 

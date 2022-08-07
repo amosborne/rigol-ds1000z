@@ -2,13 +2,19 @@ import argparse
 import sys
 
 import rigol_ds1000z.app.tui as tui
-from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_display, process_waveform
+from rigol_ds1000z.src.rigol_ds1000z import Rigol_DS1000Z
+from rigol_ds1000z.utils import process_display, process_waveform
 
 parser = argparse.ArgumentParser(
     description=(
-        "Save to file a display capture or waveform data from a Rigol DS1000Z series "
-        "oscilloscope. The first valid VISA address identified is utilized by default."
+        "Save to file a display capture or waveform data from a Rigol DS1000Z series oscilloscope. "
+        "Unless explicitly provided, the first valid VISA address will be used by default. "
+        "If a display capture and waveform data are not requested, the user interface is opened. "
     ),
+)
+
+parser.add_argument(
+    "-v", "--visa", type=str, metavar="RSRC", help="specify the VISA resource address"
 )
 
 parser.add_argument(
@@ -29,14 +35,14 @@ parser.add_argument(
 )
 
 
-def save_display(filename):
-    with Rigol_DS1000Z(find_visa()) as oscope:
+def save_display(visa, filename):
+    with Rigol_DS1000Z(visa) as oscope:
         display = oscope.display()
         process_display(display, filename=filename)
 
 
-def save_waveform(source, filename):
-    with Rigol_DS1000Z(find_visa()) as oscope:
+def save_waveform(visa, source, filename):
+    with Rigol_DS1000Z(visa) as oscope:
         try:
             source = int(source)
         except ValueError:
@@ -47,12 +53,13 @@ def save_waveform(source, filename):
 
 
 def main():
-    if not len(sys.argv) > 1:
-        tui.run()
+    args = parser.parse_args()
+
+    if args.display is None and args.waveform is None:
+        tui.run(args.visa)
         return
 
-    args = parser.parse_args()
     if args.display is not None:
-        save_display(args.display)
+        save_display(args.visa, args.display)
     if args.waveform is not None:
-        save_waveform(*args.waveform)
+        save_waveform(args.visa, *args.waveform)

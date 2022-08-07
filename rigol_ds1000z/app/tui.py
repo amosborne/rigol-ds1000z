@@ -6,7 +6,7 @@ from rich.console import Console
 from textual import events
 from textual.app import App
 
-from rigol_ds1000z import Rigol_DS1000Z, find_visa, process_display, process_waveform
+from rigol_ds1000z import Rigol_DS1000Z, process_display, process_waveform
 from rigol_ds1000z.app.channel_tui import Channel_TUI
 from rigol_ds1000z.app.display_tui import Display_TUI
 from rigol_ds1000z.app.shortcuts import Shortcuts_Footer, Shortcuts_Header
@@ -24,6 +24,10 @@ def disable_while_editing(func):
 
 
 class Rigol_DS100Z_TUI(App):
+    def __init__(self, *args, visa=None, **kwargs):
+        self.oscope = Rigol_DS1000Z(visa).open()
+        super().__init__()
+
     async def on_load(self, event: events.Load) -> None:
         await self.bind("q", "quit")
         await self.bind("r", "refresh")
@@ -39,7 +43,6 @@ class Rigol_DS100Z_TUI(App):
         await self.bind("d", "display")
         await self.bind("w", "waveform")
 
-        self.oscope = Rigol_DS1000Z(visa=find_visa()).open()
         self.editing = False
 
     async def on_mount(self, event: events.Mount) -> None:
@@ -218,7 +221,7 @@ class Rigol_DS100Z_TUI(App):
         await getattr(self.trigger, "edit_{:s}".format(field))()
 
 
-def run():
+def run(visa):
     if os.name == "nt":  # resize the terminal on Windows
         os.system("mode con: cols=108 lines=26")
-    Rigol_DS100Z_TUI.run(title="rigol-ds1000z")
+    Rigol_DS100Z_TUI.run(visa=visa, title="rigol-ds1000z")
