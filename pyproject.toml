@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "rigol-ds1000z"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python library for interfacing with Rigol DS1000Z series oscilloscopes."
 authors = ["amosborne <amosborne@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://amosborne.github.io/rigol-ds1000z/"
 repository = "https://github.com/amosborne/rigol-ds1000z"
 classifiers = ['Topic :: System :: Hardware :: Hardware Drivers']
 

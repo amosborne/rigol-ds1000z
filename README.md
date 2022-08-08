@@ -2,9 +2,9 @@
 
 ## An oscilloscope user interface that never leaves the terminal.
 
-![RigolDS1000Z_StillScreen](docs/rigol_ds1000z.png)
+![RigolDS1000Z_StillScreen](https://github.com/amosborne/rigol-ds1000z/raw/main/docs/rigol_ds1000z.png)
 
-![Rigol_DS1000Z_Animated](docs/rigol_ds1000z.gif)
+![Rigol_DS1000Z_Animated](https://github.com/amosborne/rigol-ds1000z/raw/main/docs/rigol_ds1000z.gif)
 
 ## A simple command line tool for grabbing data and pictures.
 
@@ -20,7 +20,7 @@ The CLI can capture and save to file an image of the display (`--display`) or th
 
 ## A compact Python interface for automating test procedures.
 
-See the provided [examples](examples/) and read the [documentation.](https://amosborne.github.io/rigol-ds1000z/)
+See the provided [examples](https://github.com/amosborne/rigol-ds1000z/tree/main/examples) and read the [documentation.](https://amosborne.github.io/rigol-ds1000z/)
 
 ```python
 from rigol_ds1000z import Rigol_DS1000Z
