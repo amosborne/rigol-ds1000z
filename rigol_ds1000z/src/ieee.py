@@ -16,6 +16,25 @@ def ieee(
     stb: bool = False,
     tst: bool = False,
 ):
+    """
+    Send IEEE488.2 common commands. All arguments are optional.
+    The device reset command is followed by a 5 seceond delay.
+
+    Args:
+        cls (bool): ``*CLS``
+        ese (int): ``*ESE``
+        esr (bool): ``*ESR?``
+        opc (bool): ``*OPC``
+        rst (bool): ``*RST``
+        sre (int): ``*SRE``
+        stb (bool): ``*STB?``
+        tst (bool): ``*TST?``
+
+    Returns:
+        A namedtuple with fields corresponding to the named arguments of this function (except ``cls`` and ``rst``).
+        All fields are queried regardless of which arguments were initially provided.
+        The ``idn`` field is additionally provided as a result of the query ``*IDN?``.
+    """
     if cls:
         oscope.write("*CLS")
 

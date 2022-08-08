@@ -15,6 +15,22 @@ def timebase(
     delay_scale: Optional[float] = None,
     delay_offset: Optional[float] = None,
 ):
+    """
+    Send commands to control an oscilloscope's horizontal scaling.
+    All arguments are optional.
+
+    Args:
+        mode (str): ``:TIMebase:MODE``
+        main_scale (float): ``:TIMebase:SCALe``
+        main_offset (float): ``:TIMebase:OFFSet``
+        delay_enable (bool): ``:TIMebase:DELay:ENABle``
+        delay_scale (float): ``:TIMebase:DELay:SCALe``
+        delay_offset (float): ``:TIMebase:DELay:OFFSet``
+
+    Returns:
+        A namedtuple with fields corresponding to the named arguments of this function.
+        All fields are queried regardless of which arguments were initially provided.
+    """
     if mode is not None:
         oscope.write(":TIM:MODE " + mode)
 

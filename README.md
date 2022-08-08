@@ -33,14 +33,10 @@ with Rigol_DS1000Z() as oscope:
     print(ieee.idn)
 
     # configure channels 1 and 2, the timebase, and the trigger
-    channel1 = oscope.channel(
-        1, probe=1, coupling="DC", offset=3.0, scale=2, bwlimit=True, display=True
-    )
-    channel2 = oscope.channel(
-        2, probe=1, coupling="AC", offset=1.5, scale=1, bwlimit=True, display=True
-    )
+    channel1 = oscope.channel(1, probe=1, coupling="AC", offset=3.0, scale=2)
+    channel2 = oscope.channel(2, probe=1, scale=1, display=True)
     timebase = oscope.timebase(main_scale=200e-6)
-    trigger = oscope.trigger(mode="EDGE", source=2, coupling="DC", level=0)
+    trigger = oscope.trigger(mode="EDGE", source=2, coupling="DC", level=1.5)
 
     # send an SCPI commands to setup the math channel
     oscope.write(":MATH:DISPlay ON")

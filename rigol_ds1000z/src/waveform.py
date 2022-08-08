@@ -18,7 +18,23 @@ def waveform(
     start: Optional[int] = None,
     stop: Optional[int] = None,
 ):
+    """
+    Send commands to control an oscilloscope's waveform data capturing.
+    All arguments are optional.
 
+    Args:
+        source (int, str): ``:WAVeform:SOURce``
+        mode (str): ``:WAVeform:MODE``
+        format (str): ``:WAVeform:FORMat``
+        start (int): ``:WAVeform:STARt``
+        stop (int): ``:WAVeform:STOP``
+
+    Returns:
+        A namedtuple with fields corresponding to the named arguments of this function.
+        All fields are queried regardless of which arguments were initially provided.
+        The ``data`` field is additionally provided as a result of the query ``:WAVeform:DATA?``.
+        There are several other fields provided as well which are required for post-processing.
+    """
     if source is not None:
         if isinstance(source, str):
             oscope.write(":WAV:SOUR " + source)

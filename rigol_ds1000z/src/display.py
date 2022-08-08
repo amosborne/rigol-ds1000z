@@ -15,6 +15,22 @@ def display(
     grid: Optional[str] = None,
     grid_brightness: Optional[int] = None,
 ):
+    """
+    Send commands to control an oscilloscope's display. All arguments are optional.
+
+    Args:
+        clear (bool): ``:DISPlay:CLEar``
+        type (str): ``:DISPlay:TYPE``
+        grading_time (str, float): ``:DISPlay:GRADing:TIME``
+        wave_brightness (int): ``:DISPlay:WBRightness``
+        grid (str): ``:DISPlay:GRID``
+        grid_brightness: ``:DISPlay:GBRightness``
+
+    Returns:
+        A namedtuple with fields corresponding to the named arguments of this function.
+        All fields are queried regardless of which arguments were initially provided.
+        The ``data`` field is additionally provided as a result of the query ``:DISPlay:DATA?``.
+    """
     if clear:
         oscope.write(":DISP:CLE")
 

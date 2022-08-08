@@ -22,6 +22,30 @@ def channel(
     units: Optional[str] = None,
     vernier: Optional[bool] = None,
 ):
+    """
+    Send commands to control an oscilloscope's vertical channel.
+    Other than the channel number, all arguments are optional.
+    ``range``, ``scale``, and ``offset`` are potentially conflicting
+    commands if all three are simultaneously specified; they are issued in that order.
+
+    Args:
+        n (int): The channel to be controlled (1 through 4).
+        bwlimit (bool): ``:CHANnel<n>:BWLimit``
+        coupling (str): ``:CHANnel<n>:COUPling``
+        display (bool): ``:CHANnel<n>:DISPlay``
+        invert (bool): ``:CHANnel<n>:INVert``
+        offset (float): ``:CHANnel<n>:OFFSet``
+        range (float): ``:CHANnel<n>:RANGe``
+        tcal (float): ``:CHANnel<n>:TCAL``
+        scale (float): ``:CHANnel<n>:SCALe``
+        probe (float): ``:CHANnel<n>:PROBe``
+        units (str): ``:CHANnel<n>:UNITs``
+        vernier (bool): ``:CHANnel<n>:VERNier``
+
+    Returns:
+        A namedtuple with fields corresponding to the named arguments of this function.
+        All fields are queried regardless of which arguments were initially provided.
+    """
     root = ":CHAN{:d}:".format(n)
 
     if bwlimit is not None:

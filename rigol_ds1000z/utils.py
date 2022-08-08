@@ -29,9 +29,14 @@ def find_visa():
 
 
 def process_display(display, show=False, filename=None):
-    # If display is True, matplotlib draws a new true to size figure.
-    # If filename is provided, image will be saved to file.
+    """
+    Convert the query of the display byte array into an image.
 
+    Args:
+        display: The namedtuple returned from ``Rigol_DS100Z().display()``.
+        show (bool): Draw the display image to a new matplotlib figure.
+        filename (str): Save the display image to a file (PNG recommended).
+    """
     byte_stream = BytesIO(bytearray(display.data))
     with byte_stream:
         img = mpimg.imread(byte_stream, format="jpeg")
@@ -53,6 +58,17 @@ def process_display(display, show=False, filename=None):
 
 
 def process_waveform(waveform, show=False, filename=None):
+    """
+    Convert the query of the waveform data into properly scaled Numpy arrays.
+
+    Args:
+        waveform: The namedtuple returned from ``Rigol_DS100Z().waveform()``.
+        show (bool): Draw the waveform to a new matplotlib figure.
+        filename (str): Save the display image to a file (CSV recommended).
+
+    Returns:
+        A tuple of two Numpy arrays, (xdata, ydata).
+    """
     if waveform.format == "ASC":
         ydata = np.array(waveform.data[11:].split(","), dtype=float)
     if waveform.format in ("BYTE", "WORD"):
