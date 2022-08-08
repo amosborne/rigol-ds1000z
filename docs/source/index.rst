@@ -9,9 +9,7 @@ Welcome to rigol-ds1000z's documentation!
 Click the links below or in the sidebar to see how the available functional interfaces correspond to the SCPI command structure of the Rigol DS1000Z series oscilloscopes.
 
 .. toctree::
-
-   rigol_ds1000z.rst
-   
+   oscope.rst
    channel.rst
    timebase.rst
    trigger.rst

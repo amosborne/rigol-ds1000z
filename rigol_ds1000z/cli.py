@@ -2,7 +2,7 @@ import argparse
 import sys
 
 import rigol_ds1000z.app.tui as tui
-from rigol_ds1000z.src.rigol_ds1000z import Rigol_DS1000Z
+from rigol_ds1000z.src.oscope import Rigol_DS1000Z
 from rigol_ds1000z.utils import process_display, process_waveform
 
 parser = argparse.ArgumentParser(
