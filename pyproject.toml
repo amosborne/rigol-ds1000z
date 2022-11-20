@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rigol-ds1000z"
-version = "0.2.1"
+version = "0.3.0"
 description = "Python library for interfacing with Rigol DS1000Z series oscilloscopes."
 authors = ["amosborne <amosborne@users.noreply.github.com>"]
 license = "MIT"
@@ -16,6 +16,9 @@ matplotlib = "^3.5.1"
 numpy = "^1.22.2"
 textual = "^0.1.18"
 si-prefix = "^1.2.2"
+PyVISA-py = "^0.5.3"
+pyusb = "^1.2.1"
+pyserial = "^3.5"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.12.1"

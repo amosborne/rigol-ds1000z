@@ -1,5 +1,7 @@
 # rigol-ds1000z
 
+In addition to this README, I have also written a [blog post](https://www.osborneee.com/rigol-ds1000z/) about this application.
+
 ## An oscilloscope user interface that never leaves the terminal.
 
 ![RigolDS1000Z_StillScreen](https://github.com/amosborne/rigol-ds1000z/raw/main/docs/rigol_ds1000z.png)
@@ -63,7 +65,7 @@ with Rigol_DS1000Z() as oscope:
 
 `pip install rigol-ds1000z`
 
-Available on [PyPI](https://pypi.org/project/rigol-ds1000z/). This package uses [PyVISA](https://pyvisa.readthedocs.io/en/1.12.0/introduction/getting.html) to communicate with the oscilloscope, which requires that the user also installs the National Instrument's VISA library for their operating system.
+Available on [PyPI](https://pypi.org/project/rigol-ds1000z/). This package uses [PyVISA](https://pyvisa.readthedocs.io/en/1.12.0/introduction/getting.html) to communicate with the oscilloscope. The user will have to install some VISA backend library for their operating system such as National Instrument's VISA library or libusb (this package supports both the "@ivi" and "@py" PyVISA backends transparently).
 
 This software has been tested on Windows (Command Prompt and PowerShell), although it should be possible to run in other shells and/or operating systems. For best visual performance, a default of white text on a black background is recommended.
 

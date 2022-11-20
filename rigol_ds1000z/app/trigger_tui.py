@@ -97,7 +97,7 @@ class Trigger_TUI(TableControl_TUI):
         else:
             table.add_row("NoiseReject", self._create_field(field="noisereject"))
 
-        return Panel(table, title="TRIGGER")
+        return Panel(table, title="Trigger")
 
     def _create_field(self, field):
         return super()._create_field(

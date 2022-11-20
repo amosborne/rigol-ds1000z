@@ -6,26 +6,34 @@ import matplotlib.image as mpimg  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 from pyvisa import ResourceManager
-from pyvisa.errors import VisaIOError
+from pyvisa.errors import LibraryError, VisaIOError
 
 
-def find_visa():
-    # Return the first VISA address which maps to a Rigol DS1000Z.
+def find_visas():
+    # Return all VISA addresses (and the backend) which map to a Rigol DS1000Z.
 
     RIGOL_IDN_REGEX = "^RIGOL TECHNOLOGIES,DS1[01][057]4Z(-S)?( Plus)?,.+$"
 
-    visa_manager = ResourceManager()
+    visas = []
 
-    for visa_name in visa_manager.list_resources():
+    for visa_backend in ["@ivi", "@py"]:
         try:
-            visa_resource = visa_manager.open_resource(visa_name)
-            match = search(RIGOL_IDN_REGEX, visa_resource.query("*IDN?"))
-            if match:
-                return visa_name
-        except VisaIOError:
+            visa_manager = ResourceManager(visa_backend)
+        except LibraryError:
             pass
-        finally:
-            visa_resource.close()
+
+        for visa_name in visa_manager.list_resources():
+            try:
+                visa_resource = visa_manager.open_resource(visa_name)
+                match = search(RIGOL_IDN_REGEX, visa_resource.query("*IDN?"))
+                if match:
+                    visas.append((visa_name, visa_backend))
+            except VisaIOError:
+                pass
+            finally:
+                visa_resource.close()
+
+    return visas
 
 
 def process_display(display, show=False, filename=None):
