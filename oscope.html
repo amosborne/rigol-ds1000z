@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rigol_DS1000Z &mdash; rigol-ds1000z 0.3.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Channel" href="channel.html" />
+    <link rel="prev" title="Welcome to rigol-ds1000z’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> rigol-ds1000z
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Rigol_DS1000Z</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.autoscale"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.autoscale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.clear"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.clear()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.close"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.open"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.query"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.read"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.read()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.run"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.single"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.single()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.stop"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.stop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.tforce"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.tforce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.oscope.Rigol_DS1000Z.write"><code class="docutils literal notranslate"><span class="pre">Rigol_DS1000Z.write()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="channel.html">Channel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timebase.html">Timebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trigger.html">Trigger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display.html">Display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="waveform.html">Waveform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ieee.html">IEEE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rigol-ds1000z</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Rigol_DS1000Z</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/oscope.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-src.oscope">
+<span id="rigol-ds1000z"></span><h1>Rigol_DS1000Z<a class="headerlink" href="#module-src.oscope" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.oscope.</span></span><span class="sig-name descname"><span class="pre">Rigol_DS1000Z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">visa</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z" title="Permalink to this definition"></a></dt>
+<dd><p>A class for communicating with a Rigol DS1000Z series oscilloscope.
+This class is compatible with context managers. The functional interfaces
+<code class="docutils literal notranslate"><span class="pre">ieee</span></code>, <code class="docutils literal notranslate"><span class="pre">channel</span></code>, <code class="docutils literal notranslate"><span class="pre">timebase</span></code>, <code class="docutils literal notranslate"><span class="pre">display</span></code>, <code class="docutils literal notranslate"><span class="pre">waveform</span></code>, and <code class="docutils literal notranslate"><span class="pre">trigger</span></code>
+are bound to this object as partial functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>visa</strong> (<em>str</em>) – The VISA resource address string.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.autoscale">
+<span class="sig-name descname"><span class="pre">autoscale</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.autoscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.autoscale" title="Permalink to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">:AUToscale</span></code> Autoscale the oscilloscope, followed by a 10s delay.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.clear" title="Permalink to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">:CLEar</span></code> Clear the oscilloscope display, followed by a 1s delay.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.close" title="Permalink to this definition"></a></dt>
+<dd><p>Close the VISA resource to terminate the communication channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.open" title="Permalink to this definition"></a></dt>
+<dd><p>Open the VISA resource to establish the communication channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.query" title="Permalink to this definition"></a></dt>
+<dd><p>Execute a query over the VISA communication interface.
+The command is automatically appended with a <code class="docutils literal notranslate"><span class="pre">*WAI</span></code> command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>str</em>) – The command string to be written.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – Time delay between write and read (optional).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The received string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.read" title="Permalink to this definition"></a></dt>
+<dd><p>Read back over the VISA communication interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The received string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.run" title="Permalink to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">:RUN</span></code> Run the oscilloscope, followed by a 1s delay.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.single">
+<span class="sig-name descname"><span class="pre">single</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.single" title="Permalink to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">:SINGle</span></code> Single trigger the oscilloscope, followed by a 1s delay.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.stop" title="Permalink to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">:STOP</span></code> Stop the oscilloscope, followed by a 1s delay.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.tforce">
+<span class="sig-name descname"><span class="pre">tforce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.tforce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.tforce" title="Permalink to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">:TFORce</span></code> Force trigger the oscilloscope, followed by a 1s delay.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.oscope.Rigol_DS1000Z.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/oscope.html#Rigol_DS1000Z.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.oscope.Rigol_DS1000Z.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write a command over the VISA communication interface.
+The command is automatically appended with a <code class="docutils literal notranslate"><span class="pre">*WAI</span></code> command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmd</strong> (<em>str</em>) – The command string to be written.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to rigol-ds1000z’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="channel.html" class="btn btn-neutral float-right" title="Channel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Alexander Osborne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
