@@ -1,6 +1,15 @@
 import os
 
-VISA = "USB0::0x1AB1::0x04CE::DS1ZA224812889::INSTR"
+from rigol_ds1000z.utils import find_visa
+
+VISA_USB = "USB0::0x1AB1::0x04CE::DS1ZA224812889::INSTR"
+VISA_LAN = "TCPIP0::192.168.0.227::inst0::INSTR"
+
+try:
+    find_visa(VISA_USB)
+    VISA = VISA_USB
+except ValueError:
+    VISA = VISA_LAN
 
 
 def test_cli_display_with_visa():

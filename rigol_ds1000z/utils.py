@@ -1,6 +1,7 @@
 from io import BytesIO
 from math import sqrt
 from re import search
+from typing import Optional
 
 import matplotlib.image as mpimg  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
@@ -9,31 +10,33 @@ from pyvisa import ResourceManager
 from pyvisa.errors import LibraryError, VisaIOError
 
 
-def find_visas():
+def find_visa(visa: Optional[str] = None):
     # Return all VISA addresses (and the backend) which map to a Rigol DS1000Z.
 
     RIGOL_IDN_REGEX = "^RIGOL TECHNOLOGIES,DS1[01][057]4Z(-S)?( Plus)?,.+$"
-
-    visas = []
 
     for visa_backend in ["@ivi", "@py"]:
         try:
             visa_manager = ResourceManager(visa_backend)
         except LibraryError:
-            pass
+            continue  # skip if the backend is not configured properly
 
-        for visa_name in visa_manager.list_resources():
+        visa_names = visa_manager.list_resources() if visa is None else [visa]
+
+        for visa_name in visa_names:
             try:
+                visa_resource = None
                 visa_resource = visa_manager.open_resource(visa_name)
-                match = search(RIGOL_IDN_REGEX, visa_resource.query("*IDN?"))
-                if match:
-                    visas.append((visa_name, visa_backend))
-            except VisaIOError:
-                pass
-            finally:
+                visa_idn = visa_resource.query("*IDN?", delay=1)  # type:ignore
                 visa_resource.close()
+                match = search(RIGOL_IDN_REGEX, visa_idn)
+                if match:
+                    return visa_name, visa_backend
+            except (ValueError, VisaIOError):
+                if visa_resource is not None:
+                    visa_resource.close()
 
-    return visas
+    raise ValueError("VISA resource not found.")
 
 
 def process_display(display, show=False, filename=None):

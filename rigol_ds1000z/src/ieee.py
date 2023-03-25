@@ -31,7 +31,7 @@ def ieee(
         tst (bool): ``*TST?``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function (except ``cls`` and ``rst``).
+        A namedtuple with fields corresponding to the named arguments of this function.
         All fields are queried regardless of which arguments were initially provided.
         The ``idn`` field is additionally provided as a result of the query ``*IDN?``.
     """
@@ -46,7 +46,7 @@ def ieee(
 
     if rst:
         oscope.write("*RST")
-        sleep(5)
+        sleep(15)
 
     if sre is not None:
         oscope.write("*SRE {:d}".format(sre))
