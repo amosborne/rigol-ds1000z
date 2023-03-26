@@ -21,12 +21,11 @@ pyusb = "^1.2.1"
 pyserial = "^3.5"
 
 [tool.poetry.dev-dependencies]
-pre-commit = "^2.12.1"
 isort = "^5.8.0"
 mypy = "^1.0.0"
 flake9 = "^3.8.3"
 pytest-randomly = "^3.7.0"
-pytest-cov = "^2.11.1"
+pytest-cov = "^4.0.0"
 jupyterlab = "^3.2.9"
 Sphinx = "^5.0.2"
 sphinx-rtd-theme = "^1.0.0"
@@ -34,15 +33,6 @@ black = {extras = ["jupyter"], version = "^22.6.0"}
 
 [tool.poetry.scripts]
 rigol-ds1000z = "rigol_ds1000z.cli:main"
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.flake8]
-max-line-length = 88
-extend-ignore = "E203"
-exclude = "*.ipynb_checkpoints*"
 
 [tool.pytest.ini_options]
 addopts = "--cov=rigol_ds1000z --cov-report=html:docs/coverage"

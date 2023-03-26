@@ -4,7 +4,6 @@ from rich.table import Table
 from textual.reactive import Reactive
 
 from rigol_ds1000z import Rigol_DS1000Z
-from rigol_ds1000z.app.channel_tui import Channel_TUI
 from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI, _float2si
 
 TRIGGER_MODES = {

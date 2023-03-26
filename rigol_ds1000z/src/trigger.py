@@ -5,8 +5,8 @@ from typing import Optional, Union
 TRIGGER = namedtuple(
     "TRIGGER",
     "status sweep noisereject mode holdoff coupling source slope level",
-    defaults=(None,) * 5,  # (status, sweep, noisereject, mode) are required
-)
+    defaults=(None, None, None, None, None, None, None, None, None),
+)  # (status, sweep, noisereject, mode) are required
 
 
 def trigger(
@@ -39,7 +39,7 @@ def trigger(
     Returns:
         A namedtuple with fields corresponding to the named arguments of this function.
         All fields are queried regardless of which arguments were initially provided.
-        The ``status`` field is additionally provided as a result of the query ``:TRIGger:STATus?``.
+        The ``status`` field is provided as a result of the query ``:TRIGger:STATus?``.
     """
     if sweep is not None:
         oscope.write(":TRIG:SWE {:s}".format(sweep))

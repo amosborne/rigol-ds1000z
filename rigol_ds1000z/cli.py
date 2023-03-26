@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 import rigol_ds1000z.app.tui as tui
 from rigol_ds1000z.src.oscope import Rigol_DS1000Z
@@ -7,9 +6,9 @@ from rigol_ds1000z.utils import process_display, process_waveform
 
 parser = argparse.ArgumentParser(
     description=(
-        "Save to file a display capture or waveform data from a Rigol DS1000Z series oscilloscope. "
-        "Unless explicitly provided, the first valid VISA address will be used by default. "
-        "If a display capture and waveform data are not requested, the user interface is opened. "
+        "Save to file a display capture or waveform data from a Rigol DS1000Z series oscilloscope. "  # noqa:E501
+        "Unless explicitly provided, the first valid VISA address will be used by default. "  # noqa:E501
+        "If a display capture and waveform data are not requested, the user interface is opened. "  # noqa:E501
     ),
 )
 

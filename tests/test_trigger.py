@@ -1,4 +1,4 @@
-from pytest import approx, fixture
+from pytest import fixture
 
 from rigol_ds1000z import Rigol_DS1000Z
 
@@ -6,7 +6,7 @@ from rigol_ds1000z import Rigol_DS1000Z
 @fixture(scope="function")
 def oscope():
     with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
+        oscope.rst()
         yield oscope
 
 

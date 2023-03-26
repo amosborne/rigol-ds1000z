@@ -1,13 +1,34 @@
+import struct
+from contextlib import suppress
 from io import BytesIO
 from math import sqrt
 from re import search
 from typing import Optional
+from warnings import catch_warnings, filterwarnings
 
 import matplotlib.image as mpimg  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 from pyvisa import ResourceManager
 from pyvisa.errors import LibraryError, VisaIOError
+
+
+def flush_buffer_hack(resource):
+    # this is a hack to fix an issue where USBTMC communication
+    # either times out or returns garbage data in response to queries
+    # after the oscilloscope has been reset
+    with catch_warnings():
+        filterwarnings(
+            action="ignore",
+            message=(
+                "Unexpected MsgID format."
+                " Consider updating the device's firmware."
+                " See https://github.com/pyvisa/pyvisa-py/issues/20"
+            ),
+        )
+        for i in range(3):
+            with suppress(VisaIOError, struct.error):
+                resource.query("*IDN?")
 
 
 def find_visa(visa: Optional[str] = None):
@@ -21,20 +42,22 @@ def find_visa(visa: Optional[str] = None):
         except LibraryError:
             continue  # skip if the backend is not configured properly
 
-        visa_names = visa_manager.list_resources() if visa is None else [visa]
+        if visa is None:
+            visa_names = list(visa_manager.list_resources(query="(TCPIP|USB)?*::INSTR"))
+        else:
+            visa_names = [visa]
 
         for visa_name in visa_names:
             try:
-                visa_resource = None
                 visa_resource = visa_manager.open_resource(visa_name)
-                visa_idn = visa_resource.query("*IDN?", delay=1)  # type:ignore
+                flush_buffer_hack(visa_resource)
+                visa_idn = visa_resource.query("*IDN?")  # type: ignore
                 visa_resource.close()
                 match = search(RIGOL_IDN_REGEX, visa_idn)
                 if match:
                     return visa_name, visa_backend
             except (ValueError, VisaIOError):
-                if visa_resource is not None:
-                    visa_resource.close()
+                continue
 
     raise ValueError("VISA resource not found.")
 

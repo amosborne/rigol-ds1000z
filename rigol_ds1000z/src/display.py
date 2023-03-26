@@ -29,7 +29,7 @@ def display(
     Returns:
         A namedtuple with fields corresponding to the named arguments of this function.
         All fields are queried regardless of which arguments were initially provided.
-        The ``data`` field is additionally provided as a result of the query ``:DISPlay:DATA?``.
+        The ``data`` field is provided as a result of the query ``:DISPlay:DATA?``.
     """
     if clear:
         oscope.write(":DISP:CLE")

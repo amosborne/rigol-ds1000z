@@ -1,31 +1,32 @@
 repos:
 - repo: local
   hooks:
-    - id: system
+    - id: black
       name: black
       entry: poetry run black
       language: system
       types: [python]
-    - id: system
+    - id: isort
       name: isort
       entry: poetry run isort
       language: system
       types: [python]
-    - id: system
+    - id: flake8
       name: flake8
-      entry: poetry run flake8
+      entry: poetry run flake8 --max-line-length=88
       language: system
       types: [python]
-    - id: system
+    - id: mypy
       name: mypy
       entry: poetry run mypy
       language: system
-      files: rigol_ds1000z/*
+      files: rigol_ds1000z/
+      exclude: rigol_ds1000z/app
       types: [python]
-    - id: system
+    - id: pytest
       name: pytest
       entry: poetry run pytest
       language: system
-      files: rigol_ds1000z/src/*
+      files: rigol_ds1000z/src/
       types: [python]
       pass_filenames: false
