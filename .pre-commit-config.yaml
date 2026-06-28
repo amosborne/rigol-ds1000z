@@ -20,12 +20,12 @@ repos:
       name: mypy
       entry: poetry run mypy
       language: system
-      files: rigol_ds1000z/*
+      files: ^rigol_ds1000z/
       types: [python]
     - id: system
       name: pytest
       entry: poetry run pytest
       language: system
-      files: rigol_ds1000z/src/*
+      files: ^rigol_ds1000z/src/
       types: [python]
       pass_filenames: false
