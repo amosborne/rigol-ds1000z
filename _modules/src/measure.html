@@ -1,0 +1,233 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.measure &mdash; rigol-ds1000z 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=e259d695"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            rigol-ds1000z
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../oscope.html">Rigol_DS1000Z</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../channel.html">Channel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../timebase.html">Timebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../trigger.html">Trigger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../measure.html">Measure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../acquire.html">Acquire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../display.html">Display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../waveform.html">Waveform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ieee.html">IEEE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">rigol-ds1000z</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.measure</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.measure</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">nan</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="n">MEASURE</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;MEASURE&quot;</span><span class="p">,</span> <span class="s2">&quot;source counter item value statistics&quot;</span><span class="p">)</span>
+<span class="n">STATISTICS</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;STATISTICS&quot;</span><span class="p">,</span> <span class="s2">&quot;maximum minimum current average deviation&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_float</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a measurement query response to float.</span>
+
+<span class="sd">    The scope returns non-numeric text for a measurement it cannot compute</span>
+<span class="sd">    (e.g. ``&quot;measure error!&quot;`` for a rise time with no clean edge on screen).</span>
+<span class="sd">    Treat any non-numeric response as ``nan`` (&quot;unavailable&quot;) instead of</span>
+<span class="sd">    crashing — it sits alongside the ``9.9e37`` invalid-measurement sentinel the</span>
+<span class="sd">    scope uses elsewhere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">nan</span>
+
+<span class="c1"># Measurement item mnemonics accepted by ``item`` (DS1000Z programming guide).</span>
+<span class="n">ITEMS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;VMAX&quot;</span><span class="p">,</span> <span class="s2">&quot;VMIN&quot;</span><span class="p">,</span> <span class="s2">&quot;VPP&quot;</span><span class="p">,</span> <span class="s2">&quot;VTOP&quot;</span><span class="p">,</span> <span class="s2">&quot;VBASe&quot;</span><span class="p">,</span> <span class="s2">&quot;VAMP&quot;</span><span class="p">,</span> <span class="s2">&quot;VAVG&quot;</span><span class="p">,</span> <span class="s2">&quot;VRMS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;OVERshoot&quot;</span><span class="p">,</span> <span class="s2">&quot;PREShoot&quot;</span><span class="p">,</span> <span class="s2">&quot;MARea&quot;</span><span class="p">,</span> <span class="s2">&quot;MPARea&quot;</span><span class="p">,</span> <span class="s2">&quot;PERiod&quot;</span><span class="p">,</span> <span class="s2">&quot;FREQuency&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RTIMe&quot;</span><span class="p">,</span> <span class="s2">&quot;FTIMe&quot;</span><span class="p">,</span> <span class="s2">&quot;PWIDth&quot;</span><span class="p">,</span> <span class="s2">&quot;NWIDth&quot;</span><span class="p">,</span> <span class="s2">&quot;PDUTy&quot;</span><span class="p">,</span> <span class="s2">&quot;NDUTy&quot;</span><span class="p">,</span> <span class="s2">&quot;TVMAX&quot;</span><span class="p">,</span> <span class="s2">&quot;TVMIN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PSLEWrate&quot;</span><span class="p">,</span> <span class="s2">&quot;NSLEWrate&quot;</span><span class="p">,</span> <span class="s2">&quot;VUPper&quot;</span><span class="p">,</span> <span class="s2">&quot;VMID&quot;</span><span class="p">,</span> <span class="s2">&quot;VLOWer&quot;</span><span class="p">,</span> <span class="s2">&quot;VARIance&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PVRMs&quot;</span><span class="p">,</span> <span class="s2">&quot;PPULses&quot;</span><span class="p">,</span> <span class="s2">&quot;NPULses&quot;</span><span class="p">,</span> <span class="s2">&quot;PEDGes&quot;</span><span class="p">,</span> <span class="s2">&quot;NEDGes&quot;</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># fmt: skip</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_source_token</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a channel source as either ``CHAN&lt;n&gt;`` (int) or a literal (str).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">source</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;CHAN</span><span class="si">{:d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="measure">
+<a class="viewcode-back" href="../../measure.html#src.measure.measure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">measure</span><span class="p">(</span>
+    <span class="n">oscope</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">counter</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">item</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">clear</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send commands to make automatic measurements on an oscilloscope.</span>
+<span class="sd">    All arguments are optional. The ``source`` is the default channel used for</span>
+<span class="sd">    item measurements; an ``item`` query returns its measured ``value`` against</span>
+<span class="sd">    that source. See ``measure.ITEMS`` for the supported item mnemonics</span>
+<span class="sd">    (e.g. ``VPP``, ``VAVG``, ``FREQuency``, ``PERiod``, ``PWIDth``).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source (int, str): ``:MEASure:SOURce`` (a channel number or ``MATH``).</span>
+<span class="sd">        counter (int, str): ``:MEASure:COUNter:SOURce`` (a channel or ``OFF``);</span>
+<span class="sd">            setting it is followed by a 1s delay so the counter can gate.</span>
+<span class="sd">        item (str): The measurement item to query via ``:MEASure:ITEM?``.</span>
+<span class="sd">        clear (str): ``:MEASure:CLEar`` (``ITEM1`` through ``ITEM5`` or ``ALL``).</span>
+<span class="sd">        statistics (bool): When ``True`` and an ``item`` is given, enable the</span>
+<span class="sd">            statistics display (``:MEASure:STATistic:DISPlay``) and report the</span>
+<span class="sd">            item&#39;s statistics.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A namedtuple with fields ``source``, ``counter``, ``item``, ``value``,</span>
+<span class="sd">        and ``statistics``. ``source`` and ``counter`` are always queried.</span>
+<span class="sd">        ``counter`` is the frequency counter value (``:MEASure:COUNter:VALue?``)</span>
+<span class="sd">        or ``None`` when the counter source is ``OFF``. ``item`` echoes the</span>
+<span class="sd">        queried item and ``value`` is its float result, both ``None`` when no</span>
+<span class="sd">        ``item`` was given. ``statistics`` is a ``STATISTICS`` namedtuple</span>
+<span class="sd">        (``maximum``, ``minimum``, ``current``, ``average``, ``deviation``)</span>
+<span class="sd">        when requested, otherwise ``None``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">oscope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;:MEAS:SOUR &quot;</span> <span class="o">+</span> <span class="n">_source_token</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">counter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">oscope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;:MEAS:COUN:SOUR &quot;</span> <span class="o">+</span> <span class="n">_source_token</span><span class="p">(</span><span class="n">counter</span><span class="p">))</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># allow the frequency counter to gate before its value is read</span>
+
+    <span class="k">if</span> <span class="n">clear</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">oscope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;:MEAS:CLE &quot;</span> <span class="o">+</span> <span class="n">clear</span><span class="p">)</span>
+
+    <span class="n">source_query</span> <span class="o">=</span> <span class="n">oscope</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;:MEAS:SOUR?&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">source_query</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CHAN&quot;</span><span class="p">):</span>
+        <span class="n">source_query</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">source_query</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">counter_source</span> <span class="o">=</span> <span class="n">oscope</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;:MEAS:COUN:SOUR?&quot;</span><span class="p">)</span>
+    <span class="n">counter_value</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">counter_source</span> <span class="o">==</span> <span class="s2">&quot;OFF&quot;</span> <span class="k">else</span> <span class="n">_to_float</span><span class="p">(</span><span class="n">oscope</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;:MEAS:COUN:VAL?&quot;</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">statistics_query</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">_source_token</span><span class="p">(</span><span class="n">source_query</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_to_float</span><span class="p">(</span><span class="n">oscope</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;:MEAS:ITEM? </span><span class="si">{:s}</span><span class="s2">,</span><span class="si">{:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">src</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">statistics</span><span class="p">:</span>
+            <span class="n">oscope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;:MEAS:STAT:DISP 1&quot;</span><span class="p">)</span>
+            <span class="n">oscope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;:MEAS:STAT:ITEM </span><span class="si">{:s}</span><span class="s2">,</span><span class="si">{:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">src</span><span class="p">))</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_stat</span><span class="p">(</span><span class="n">kind</span><span class="p">):</span>
+                <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;:MEAS:STAT:ITEM? </span><span class="si">{:s}</span><span class="s2">,</span><span class="si">{:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_to_float</span><span class="p">(</span><span class="n">oscope</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
+
+            <span class="n">statistics_query</span> <span class="o">=</span> <span class="n">STATISTICS</span><span class="p">(</span>
+                <span class="n">maximum</span><span class="o">=</span><span class="n">_stat</span><span class="p">(</span><span class="s2">&quot;MAX&quot;</span><span class="p">),</span>
+                <span class="n">minimum</span><span class="o">=</span><span class="n">_stat</span><span class="p">(</span><span class="s2">&quot;MIN&quot;</span><span class="p">),</span>
+                <span class="n">current</span><span class="o">=</span><span class="n">_stat</span><span class="p">(</span><span class="s2">&quot;CURR&quot;</span><span class="p">),</span>
+                <span class="n">average</span><span class="o">=</span><span class="n">_stat</span><span class="p">(</span><span class="s2">&quot;AVER&quot;</span><span class="p">),</span>
+                <span class="n">deviation</span><span class="o">=</span><span class="n">_stat</span><span class="p">(</span><span class="s2">&quot;DEV&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">MEASURE</span><span class="p">(</span>
+        <span class="n">source</span><span class="o">=</span><span class="n">source_query</span><span class="p">,</span>
+        <span class="n">counter</span><span class="o">=</span><span class="n">counter_value</span><span class="p">,</span>
+        <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">statistics</span><span class="o">=</span><span class="n">statistics_query</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Alexander Osborne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

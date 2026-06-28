@@ -1,0 +1,154 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Measure &mdash; rigol-ds1000z 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e259d695"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Acquire" href="acquire.html" />
+    <link rel="prev" title="Trigger" href="trigger.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            rigol-ds1000z
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="oscope.html">Rigol_DS1000Z</a></li>
+<li class="toctree-l1"><a class="reference internal" href="channel.html">Channel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timebase.html">Timebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trigger.html">Trigger</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Measure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#src.measure.measure"><code class="docutils literal notranslate"><span class="pre">measure()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="acquire.html">Acquire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="display.html">Display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="waveform.html">Waveform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ieee.html">IEEE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rigol-ds1000z</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Measure</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/measure.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-src.measure">
+<span id="measure"></span><h1>Measure<a class="headerlink" href="#module-src.measure" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.measure.measure">
+<span class="sig-prename descclassname"><span class="pre">src.measure.</span></span><span class="sig-name descname"><span class="pre">measure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oscope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/measure.html#measure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.measure.measure" title="Link to this definition"></a></dt>
+<dd><p>Send commands to make automatic measurements on an oscilloscope.
+All arguments are optional. The <code class="docutils literal notranslate"><span class="pre">source</span></code> is the default channel used for
+item measurements; an <code class="docutils literal notranslate"><span class="pre">item</span></code> query returns its measured <code class="docutils literal notranslate"><span class="pre">value</span></code> against
+that source. See <code class="docutils literal notranslate"><span class="pre">measure.ITEMS</span></code> for the supported item mnemonics
+(e.g. <code class="docutils literal notranslate"><span class="pre">VPP</span></code>, <code class="docutils literal notranslate"><span class="pre">VAVG</span></code>, <code class="docutils literal notranslate"><span class="pre">FREQuency</span></code>, <code class="docutils literal notranslate"><span class="pre">PERiod</span></code>, <code class="docutils literal notranslate"><span class="pre">PWIDth</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>int</em><em>, </em><em>str</em>) – <code class="docutils literal notranslate"><span class="pre">:MEASure:SOURce</span></code> (a channel number or <code class="docutils literal notranslate"><span class="pre">MATH</span></code>).</p></li>
+<li><p><strong>counter</strong> (<em>int</em><em>, </em><em>str</em>) – <code class="docutils literal notranslate"><span class="pre">:MEASure:COUNter:SOURce</span></code> (a channel or <code class="docutils literal notranslate"><span class="pre">OFF</span></code>);
+setting it is followed by a 1s delay so the counter can gate.</p></li>
+<li><p><strong>item</strong> (<em>str</em>) – The measurement item to query via <code class="docutils literal notranslate"><span class="pre">:MEASure:ITEM?</span></code>.</p></li>
+<li><p><strong>clear</strong> (<em>str</em>) – <code class="docutils literal notranslate"><span class="pre">:MEASure:CLEar</span></code> (<code class="docutils literal notranslate"><span class="pre">ITEM1</span></code> through <code class="docutils literal notranslate"><span class="pre">ITEM5</span></code> or <code class="docutils literal notranslate"><span class="pre">ALL</span></code>).</p></li>
+<li><p><strong>statistics</strong> (<em>bool</em>) – When <code class="docutils literal notranslate"><span class="pre">True</span></code> and an <code class="docutils literal notranslate"><span class="pre">item</span></code> is given, enable the
+statistics display (<code class="docutils literal notranslate"><span class="pre">:MEASure:STATistic:DISPlay</span></code>) and report the
+item’s statistics.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A namedtuple with fields <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">counter</span></code>, <code class="docutils literal notranslate"><span class="pre">item</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">statistics</span></code>. <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">counter</span></code> are always queried.
+<code class="docutils literal notranslate"><span class="pre">counter</span></code> is the frequency counter value (<code class="docutils literal notranslate"><span class="pre">:MEASure:COUNter:VALue?</span></code>)
+or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the counter source is <code class="docutils literal notranslate"><span class="pre">OFF</span></code>. <code class="docutils literal notranslate"><span class="pre">item</span></code> echoes the
+queried item and <code class="docutils literal notranslate"><span class="pre">value</span></code> is its float result, both <code class="docutils literal notranslate"><span class="pre">None</span></code> when no
+<code class="docutils literal notranslate"><span class="pre">item</span></code> was given. <code class="docutils literal notranslate"><span class="pre">statistics</span></code> is a <code class="docutils literal notranslate"><span class="pre">STATISTICS</span></code> namedtuple
+(<code class="docutils literal notranslate"><span class="pre">maximum</span></code>, <code class="docutils literal notranslate"><span class="pre">minimum</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">average</span></code>, <code class="docutils literal notranslate"><span class="pre">deviation</span></code>)
+when requested, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="trigger.html" class="btn btn-neutral float-left" title="Trigger" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="acquire.html" class="btn btn-neutral float-right" title="Acquire" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Alexander Osborne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
