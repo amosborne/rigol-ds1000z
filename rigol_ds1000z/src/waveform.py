@@ -1,13 +1,57 @@
 from collections import namedtuple
 from typing import Optional, Union
 
+from rigol_ds1000z.src._scpi import (
+    Binary,
+    Int,
+    Source,
+    String,
+    read_fields,
+    write_fields,
+)
+
 WAVEFORM = namedtuple(
     "WAVEFORM",
     (
         "source mode format data xincrement xorigin xreference "
-        "yincrement yorigin yreference start stop preamble"
+        "yincrement yorigin yreference start stop points count"
     ),
 )
+
+# settable parameters (written when provided, then read back)
+_SETTABLE = (
+    Source("source", ":WAV:SOUR"),
+    String("mode", ":WAV:MODE"),
+    String("format", ":WAV:FORM"),
+    Int("start", ":WAV:STAR"),
+    Int("stop", ":WAV:STOP"),
+)
+
+
+def _read_data(oscope, format):
+    """Read ``:WAV:DATA?`` using the transfer method for the given format."""
+    if format == "ASC":
+        return String("data", ":WAV:DATA").get(oscope)
+    if format == "BYTE":
+        return Binary("data", ":WAV:DATA", "B").get(oscope)
+    if format == "WORD":
+        return Binary("data", ":WAV:DATA", "H").get(oscope)
+    return None
+
+
+def _read_preamble(oscope):
+    """Parse ``:WAV:PRE?`` for the sample/average counts and the X/Y scaling."""
+    p = String("preamble", ":WAV:PRE").get(oscope).split(",")
+    return {
+        "points": int(p[2]),
+        "count": int(p[3]),
+        "xincrement": float(p[4]),
+        "xorigin": float(p[5]),
+        "xreference": int(p[6]),
+        "yincrement": float(p[7]),
+        "yorigin": int(p[8]),
+        "yreference": int(p[9]),
+    }
 
 
 def waveform(
@@ -32,55 +76,15 @@ def waveform(
     Returns:
         A namedtuple with fields corresponding to the named arguments of this function.
         All fields are queried regardless of which arguments were initially provided.
-        The ``data`` field is additionally provided as a result of the query
-        ``:WAVeform:DATA?``. Several other fields required for post-processing
-        are also provided.
+        The ``data`` field holds the captured samples (``:WAVeform:DATA?``). The
+        ``points`` and ``count`` fields and the X/Y scaling factors used for
+        post-processing are parsed from ``:WAVeform:PREamble?``.
     """
-    if source is not None:
-        if isinstance(source, str):
-            oscope.write(":WAV:SOUR " + source)
-        else:
-            oscope.write(":WAV:SOUR CHAN{:d}".format(source))
-
-    source_query = oscope.query(":WAV:SOUR?")
-    if not source_query == "MATH":
-        source_query = int(source_query[-1])
-
-    if mode is not None:
-        oscope.write(":WAV:MODE " + mode)
-
-    if format is not None:
-        oscope.write(":WAV:FORM " + format)
-
-    format_query = oscope.query(":WAV:FORM?")
-
-    if start is not None:
-        oscope.write(":WAV:STAR {:d}".format(start))
-
-    if stop is not None:
-        oscope.write(":WAV:STOP {:d}".format(stop))
-
-    if format_query == "ASC":
-        data_query = oscope.query(":WAV:DATA?")
-    elif format_query == "BYTE":
-        data_query = oscope.visa_rsrc.query_binary_values(":WAV:DATA?", "B")
-    elif format_query == "WORD":
-        data_query = oscope.visa_rsrc.query_binary_values(":WAV:DATA?", "H")
-    else:
-        data_query = None
-
+    provided = dict(source=source, mode=mode, format=format, start=start, stop=stop)
+    write_fields(oscope, _SETTABLE, provided)
+    values = read_fields(oscope, _SETTABLE)
     return WAVEFORM(
-        source=source_query,
-        mode=oscope.query(":WAV:MODE?"),
-        format=format_query,
-        data=data_query,
-        xincrement=float(oscope.query(":WAV:XINC?")),
-        xorigin=float(oscope.query(":WAV:XOR?")),
-        xreference=int(oscope.query(":WAV:XREF?")),
-        yincrement=float(oscope.query(":WAV:YINC?")),
-        yorigin=int(oscope.query(":WAV:YOR?")),
-        yreference=int(oscope.query(":WAV:YREF?")),
-        start=int(oscope.query(":WAV:STAR?")),
-        stop=int(oscope.query(":WAV:STOP?")),
-        preamble=oscope.query(":WAV:PRE?"),
+        **values,
+        data=_read_data(oscope, values["format"]),
+        **_read_preamble(oscope),
     )

@@ -10,7 +10,7 @@ CHANNEL = namedtuple(
 
 # Declaration order is the write order. ``range``, ``scale``, and ``offset`` are
 # potentially conflicting and are deliberately issued in that order.
-_FIELDS = (
+_SETTABLE = (
     Bool("bwlimit", ":CHAN{n}:BWL", true="20M", false="OFF"),
     String("coupling", ":CHAN{n}:COUP"),
     Bool("display", ":CHAN{n}:DISP"),
@@ -77,5 +77,5 @@ def channel(
         tcal=tcal,
         units=units,
     )
-    write_fields(oscope, _FIELDS, provided, n=n)
-    return CHANNEL(**read_fields(oscope, _FIELDS, n=n))
+    write_fields(oscope, _SETTABLE, provided, n=n)
+    return CHANNEL(**read_fields(oscope, _SETTABLE, n=n))
