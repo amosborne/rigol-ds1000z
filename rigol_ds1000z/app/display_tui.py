@@ -11,16 +11,16 @@ class Display_TUI(TableControl_TUI):
 
     type: Reactive[RenderableType] = Reactive("")
     grading_time: Reactive[RenderableType] = Reactive("")
-    wave_brightness: Reactive[RenderableType] = Reactive("")
+    wbrightness: Reactive[RenderableType] = Reactive("")
     grid: Reactive[RenderableType] = Reactive("")
-    grid_brightness: Reactive[RenderableType] = Reactive("")
+    gbrightness: Reactive[RenderableType] = Reactive("")
 
     def update_oscope(self, **kwargs):
         display = self.oscope.display(**kwargs)
         self.type = "Vector" if display.type == "VECT" else "Dots"
-        self.wave_brightness = "{:d}%".format(display.wave_brightness)
+        self.wbrightness = "{:d}%".format(display.wbrightness)
         self.grid = display.grid
-        self.grid_brightness = "{:d}%".format(display.grid_brightness)
+        self.gbrightness = "{:d}%".format(display.gbrightness)
 
         if isinstance(display.grading_time, str):
             self.grading_time = "Min" if display.grading_time == "MIN" else "Infinite"
@@ -35,9 +35,9 @@ class Display_TUI(TableControl_TUI):
         table.add_column(no_wrap=True)
         table.add_row("Type", self._create_field(field="type"))
         table.add_row("Persis Time", self._create_field(field="grading_time"))
-        table.add_row("Intensity", self._create_field(field="wave_brightness"))
+        table.add_row("Intensity", self._create_field(field="wbrightness"))
         table.add_row("Grid", self._create_field(field="grid"))
-        table.add_row("Brightness", self._create_field(field="grid_brightness"))
+        table.add_row("Brightness", self._create_field(field="gbrightness"))
 
         return Panel(table, title="Display")
 
@@ -60,8 +60,8 @@ class Display_TUI(TableControl_TUI):
 
         self._edit_field("grading_time", formatter=grading_time_formatter)
 
-    async def edit_wave_brightness(self):
-        self._edit_field("wave_brightness", formatter=int)
+    async def edit_wbrightness(self):
+        self._edit_field("wbrightness", formatter=int)
 
     async def edit_grid(self):
         GRID_OPTIONS = ["FULL", "HALF", "NONE"]
@@ -69,5 +69,5 @@ class Display_TUI(TableControl_TUI):
         idx = 0 if idx == len(GRID_OPTIONS) else idx
         self.update_oscope(grid=GRID_OPTIONS[idx])
 
-    async def edit_grid_brightness(self):
-        self._edit_field("grid_brightness", formatter=int)
+    async def edit_gbrightness(self):
+        self._edit_field("gbrightness", formatter=int)

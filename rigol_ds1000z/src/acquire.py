@@ -1,13 +1,24 @@
 from collections import namedtuple
 from typing import Optional, Union
 
-ACQUIRE = namedtuple("ACQUIRE", "averages memdepth srate type")
+from rigol_ds1000z.src._scpi import Int, String, read_fields, write_fields
+
+ACQUIRE = namedtuple("ACQUIRE", "averages mdepth srate type")
+
+# ``type`` is declared first so it is written before ``averages`` (averages only
+# takes effect while the type is AVERages). ``mdepth`` is an integer point count
+# or the literal ``AUTO`` (an Int with ``AUTO`` as a pass-through keyword).
+_FIELDS = (
+    String("type", ":ACQ:TYPE"),
+    Int("averages", ":ACQ:AVER"),
+    Int("mdepth", ":ACQ:MDEP", keywords=("AUTO",)),
+)
 
 
 def acquire(
     oscope,
     averages: Optional[int] = None,
-    memdepth: Union[int, str, None] = None,
+    mdepth: Union[int, str, None] = None,
     type: Optional[str] = None,
 ):
     """
@@ -18,7 +29,7 @@ def acquire(
 
     Args:
         averages (int): ``:ACQuire:AVERages`` (a power of two, 2 to 1024).
-        memdepth (int, str): ``:ACQuire:MDEPth`` (an integer point count or ``AUTO``).
+        mdepth (int, str): ``:ACQuire:MDEPth`` (an integer point count or ``AUTO``).
         type (str): ``:ACQuire:TYPE`` (``NORM``, ``AVER``, ``PEAK``, or ``HRES``).
 
     Returns:
@@ -27,18 +38,9 @@ def acquire(
         The ``srate`` field is additionally provided as a result of the
         query ``:ACQuire:SRATe?`` (the sample rate in samples per second).
     """
-    if type is not None:
-        oscope.write(":ACQ:TYPE {:s}".format(type))
-
-    if averages is not None:
-        oscope.write(":ACQ:AVER {:d}".format(averages))
-
-    if memdepth is not None:
-        oscope.write(":ACQ:MDEP {}".format(memdepth))
-
+    provided = dict(type=type, averages=averages, mdepth=mdepth)
+    write_fields(oscope, _FIELDS, provided)
     return ACQUIRE(
-        averages=int(oscope.query(":ACQ:AVER?")),
-        memdepth=oscope.query(":ACQ:MDEP?"),
+        **read_fields(oscope, _FIELDS),
         srate=float(oscope.query(":ACQ:SRAT?")),
-        type=oscope.query(":ACQ:TYPE?"),
     )
