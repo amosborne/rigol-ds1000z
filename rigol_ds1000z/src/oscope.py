@@ -4,9 +4,11 @@ from typing import Optional
 
 from pyvisa import ResourceManager
 
+from rigol_ds1000z.src.acquire import acquire
 from rigol_ds1000z.src.channel import channel
 from rigol_ds1000z.src.display import display
 from rigol_ds1000z.src.ieee import ieee
+from rigol_ds1000z.src.measure import measure
 from rigol_ds1000z.src.timebase import timebase
 from rigol_ds1000z.src.trigger import trigger
 from rigol_ds1000z.src.waveform import waveform
@@ -17,8 +19,8 @@ class Rigol_DS1000Z:
     """
     A class for communicating with a Rigol DS1000Z series oscilloscope.
     This class is compatible with context managers. The functional interfaces
-    ``ieee``, ``channel``, ``timebase``, ``display``, ``waveform``, and ``trigger``
-    are bound to this object as partial functions.
+    ``ieee``, ``channel``, ``timebase``, ``display``, ``waveform``, ``trigger``,
+    ``measure``, and ``acquire`` are bound to this object as partial functions.
 
     Args:
         visa (str): The VISA resource address string.
@@ -41,6 +43,8 @@ class Rigol_DS1000Z:
         self.display = partial(display, self)
         self.waveform = partial(waveform, self)
         self.trigger = partial(trigger, self)
+        self.measure = partial(measure, self)
+        self.acquire = partial(acquire, self)
 
     def __enter__(self):
         return self.open()

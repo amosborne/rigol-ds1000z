@@ -78,7 +78,7 @@ The software does insert some sleep time on specific commands (such as reset and
 | Command Category | Coverage |
 | --- | --- |
 | AUToscale, etc. | YES |
-| ACQuire | no |
+| ACQuire | YES |
 | CALibrate | no |
 | CHANnel | YES |
 | CURSor | no |
@@ -91,7 +91,7 @@ The software does insert some sleep time on specific commands (such as reset and
 | LAN | no |
 | MATH | no |
 | MASK | no |
-| MEASure | no |
+| MEASure | YES |
 | REFerence | no |
 | STORage | no |
 | SYSTem | no |

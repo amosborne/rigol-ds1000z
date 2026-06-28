@@ -41,3 +41,30 @@ def test_trigger_edge(oscope):
     assert trigger.source == 2
     assert trigger.slope == "NEG"
     assert trigger.level == 0.5
+
+
+def test_trigger_pulse(oscope):
+    oscope.autoscale()
+
+    trigger = oscope.trigger(mode="PULS", source=2, when="PGR", level=0.5, lower=1e-6)
+
+    assert trigger.mode == "PULS"
+    assert trigger.source == 2
+    assert trigger.when == "PGR"
+    assert trigger.level == 0.5
+    assert trigger.lower == approx(1e-6)
+
+
+def test_trigger_slope(oscope):
+    oscope.autoscale()
+
+    trigger = oscope.trigger(
+        mode="SLOP", source=2, when="PGR", lower=1e-6, alevel=1.0, blevel=0.0
+    )
+
+    assert trigger.mode == "SLOP"
+    assert trigger.source == 2
+    assert trigger.when == "PGR"
+    assert trigger.lower == approx(1e-6)
+    assert trigger.alevel == 1.0
+    assert trigger.blevel == 0.0
