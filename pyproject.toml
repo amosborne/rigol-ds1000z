@@ -29,8 +29,7 @@ matplotlib = "^3.10"
 numpy = "^2.1"
 textual = "0.1.18" # pin to legacy API
 si-prefix = "^1.2"
-PyVISA-py = "^0.8"
-pyusb = "^1.2"
+PyVISA-py = { version = "^0.8", extras = ["hislip-discovery", "usb-full"] }
 pyserial = "^3.5"
 
 [tool.poetry.group.dev.dependencies]
@@ -54,10 +53,19 @@ rigol-ds1000z = "rigol_ds1000z.cli:main"
 profile = "black"
 multi_line_output = 3
 
+[tool.black]
+target-version = ["py314"]
+
 [tool.flake8]
 max-line-length = 88
 extend-ignore = "E203"
 exclude = "*.ipynb_checkpoints*"
+
+# The app/ TUI targets the legacy Textual 0.1.x API and is pending a rewrite;
+# exempt it from type-checking until then.
+[[tool.mypy.overrides]]
+module = "rigol_ds1000z.app.*"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=rigol_ds1000z --cov-report=html:docs/coverage"

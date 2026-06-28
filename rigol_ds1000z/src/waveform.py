@@ -32,8 +32,9 @@ def waveform(
     Returns:
         A namedtuple with fields corresponding to the named arguments of this function.
         All fields are queried regardless of which arguments were initially provided.
-        The ``data`` field is additionally provided as a result of the query ``:WAVeform:DATA?``.
-        There are several other fields provided as well which are required for post-processing.
+        The ``data`` field is additionally provided as a result of the query
+        ``:WAVeform:DATA?``. Several other fields required for post-processing
+        are also provided.
     """
     if source is not None:
         if isinstance(source, str):

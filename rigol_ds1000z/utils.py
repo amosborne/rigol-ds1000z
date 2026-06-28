@@ -19,7 +19,7 @@ def find_visas():
     for visa_backend in ["@ivi", "@py"]:
         try:
             visa_manager = ResourceManager(visa_backend)
-        except (LibraryError, OSError, ValueError):
+        except LibraryError, OSError, ValueError:
             # The backend is unavailable (e.g. no NI-VISA library installed for
             # "@ivi", which raises a plain OSError rather than a LibraryError);
             # skip it instead of letting the error propagate.

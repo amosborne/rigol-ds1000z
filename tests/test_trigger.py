@@ -1,13 +1,6 @@
-from pytest import approx, fixture
+from time import sleep
 
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
+from pytest import approx
 
 
 def test_sweep(oscope):
@@ -20,6 +13,7 @@ def test_sweep(oscope):
     assert oscope.trigger().status == "TD"
 
     assert oscope.trigger(sweep="SING").sweep == "SING"
+    sleep(1)  # let the single acquisition capture and settle to STOP
     assert oscope.trigger().status == "STOP"
 
 

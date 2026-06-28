@@ -1,20 +1,4 @@
-from pytest import fixture
-
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
-
-
-def test_write_read_query(oscope):
-    idn = "RIGOL TECHNOLOGIES,DS1104Z,DS1ZA224812889,00.04.04.SP4"
-    oscope.write("*IDN?")
-    assert oscope.read() == idn
-    assert oscope.query("*IDN?", delay=1) == idn
+from random import randint
 
 
 def test_big_buttons(oscope):
@@ -24,3 +8,21 @@ def test_big_buttons(oscope):
     oscope.autoscale()
     oscope.single()
     oscope.tforce()
+
+
+def test_idn(oscope):
+    assert oscope.idn() == "RIGOL TECHNOLOGIES,DS1104Z,DS1ZA224812889,00.04.04.SP4"
+
+
+def test_status_byte(oscope):
+    oscope.cls()
+    sre = 2 ** randint(2, 5)
+    assert oscope.sre(sre) == sre
+    assert oscope.stb() == 0
+
+
+def test_standard_event(oscope):
+    oscope.cls()
+    ese = 2 ** randint(2, 5)
+    assert oscope.ese(ese) == ese
+    assert oscope.esr() == 0

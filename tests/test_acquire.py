@@ -1,15 +1,3 @@
-from pytest import fixture
-
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
-
-
 def test_type(oscope):
     for type in ["NORM", "AVER", "PEAK", "HRES"]:
         assert oscope.acquire(type=type).type == type

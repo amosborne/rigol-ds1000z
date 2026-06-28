@@ -18,8 +18,9 @@ def _to_float(response):
     """
     try:
         return float(response)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return nan
+
 
 # Measurement item mnemonics accepted by ``item`` (DS1000Z programming guide).
 ITEMS = (

@@ -1,15 +1,4 @@
-from random import randint
-
-from pytest import fixture
-
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
+from time import sleep
 
 
 def test_mode(oscope):
@@ -22,9 +11,8 @@ def test_format(oscope):
         assert oscope.waveform(format=format).format == format
 
 
-def test_source(oscope):
+def test_source(oscope, n):
     assert oscope.waveform(source="MATH").source == "MATH"
-    n = randint(1, 4)
     assert oscope.waveform(source=n).source == n
 
 
@@ -38,6 +26,8 @@ def test_preamble(oscope):
     preamble_format = {0: "BYTE", 1: "WORD", 2: "ASC"}
     preamble_mode = {0: "NORM", 1: "MAX", 2: "RAW"}
     oscope.autoscale()
+    oscope.single()
+    sleep(1)  # let the single acquisition capture a complete frame before reading
     waveform = oscope.waveform()
     preamble = waveform.preamble.split(",")
     assert preamble_format[int(preamble[0])] == waveform.format
