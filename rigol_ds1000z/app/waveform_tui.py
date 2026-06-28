@@ -3,7 +3,7 @@ from rich.panel import Panel
 from rich.table import Table
 from textual.reactive import Reactive
 
-from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI, _float2si
+from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI
 
 
 class Waveform_TUI(TableControl_TUI):

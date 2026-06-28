@@ -13,7 +13,7 @@ repos:
       types: [python]
     - id: system
       name: flake8
-      entry: poetry run flake8
+      entry: poetry run flake8p
       language: system
       types: [python]
     - id: system

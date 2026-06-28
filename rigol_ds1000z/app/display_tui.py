@@ -4,7 +4,7 @@ from rich.table import Table
 from si_prefix import si_format
 from textual.reactive import Reactive
 
-from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI, _float2si
+from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI
 
 
 class Display_TUI(TableControl_TUI):

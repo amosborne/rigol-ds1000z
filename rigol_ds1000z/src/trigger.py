@@ -1,12 +1,12 @@
 from collections import namedtuple
-from time import sleep
 from typing import Optional, Union
 
 TRIGGER = namedtuple(
     "TRIGGER",
     "status sweep noisereject mode holdoff coupling source slope level "
     "when upper lower window alevel blevel time",
-    defaults=(None,) * 12,  # (status, sweep, noisereject, mode) are required
+    # status, sweep, noisereject, mode are required; the rest default to None
+    defaults=(None, None, None, None, None, None, None, None, None, None, None, None),
 )
 
 
@@ -75,7 +75,6 @@ def trigger(
     """
     if sweep is not None:
         oscope.write(":TRIG:SWE {:s}".format(sweep))
-        sleep(1)
 
     if noisereject is not None:
         oscope.write(":TRIG:NREJ {:d}".format(noisereject))

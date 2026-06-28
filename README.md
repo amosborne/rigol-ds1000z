@@ -31,8 +31,8 @@ from time import sleep
 
 with Rigol_DS1000Z() as oscope:
     # reset to defaults and print the IEEE 488.2 instrument identifier
-    ieee = oscope.ieee(rst=True)
-    print(ieee.idn)
+    oscope.rst()
+    print(oscope.idn())
 
     # configure channels 1 and 2, the timebase, and the trigger
     channel1 = oscope.channel(1, probe=1, coupling="AC", offset=3.0, scale=2)
