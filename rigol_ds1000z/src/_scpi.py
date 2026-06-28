@@ -82,6 +82,28 @@ class Bool(Field):
         return response == self.true
 
 
+class Source(Field):
+    """A source: a channel number (int) or a literal like ``MATH``/``EXT``."""
+
+    def format(self, value):
+        return value if isinstance(value, str) else "CHAN{:d}".format(value)
+
+    def parse(self, response):
+        return int(response[-1]) if response.startswith("CHAN") else response
+
+
+class Binary(Field):
+    """A read-only binary block read via ``query_binary_values`` (e.g. screen data)."""
+
+    def __init__(self, name, command, datatype="B"):
+        super().__init__(name, command)
+        self.datatype = datatype
+
+    def get(self, oscope, **ctx):
+        command = self.command.format(**ctx) + "?"
+        return oscope.visa_rsrc.query_binary_values(command, self.datatype)
+
+
 def write_fields(oscope, fields, values, **ctx):
     """Write each provided (non-``None``) value, in field-declaration order."""
     for field in fields:

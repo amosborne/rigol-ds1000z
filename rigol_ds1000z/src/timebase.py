@@ -7,7 +7,7 @@ TIMEBASE = namedtuple(
     "TIMEBASE", "mode main_scale main_offset delay_enable delay_scale delay_offset"
 )
 
-_FIELDS = (
+_SETTABLE = (
     String("mode", ":TIM:MODE"),
     Float("main_scale", ":TIM:SCAL"),
     Float("main_offset", ":TIM:OFFS"),
@@ -50,5 +50,5 @@ def timebase(
         delay_scale=delay_scale,
         delay_offset=delay_offset,
     )
-    write_fields(oscope, _FIELDS, provided)
-    return TIMEBASE(**read_fields(oscope, _FIELDS))
+    write_fields(oscope, _SETTABLE, provided)
+    return TIMEBASE(**read_fields(oscope, _SETTABLE))

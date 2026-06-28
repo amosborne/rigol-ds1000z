@@ -1,18 +1,21 @@
 from collections import namedtuple
 from typing import Optional, Union
 
-from rigol_ds1000z.src._scpi import Int, String, read_fields, write_fields
+from rigol_ds1000z.src._scpi import Float, Int, String, read_fields, write_fields
 
 ACQUIRE = namedtuple("ACQUIRE", "averages mdepth srate type")
 
 # ``type`` is declared first so it is written before ``averages`` (averages only
 # takes effect while the type is AVERages). ``mdepth`` is an integer point count
 # or the literal ``AUTO`` (an Int with ``AUTO`` as a pass-through keyword).
-_FIELDS = (
+_SETTABLE = (
     String("type", ":ACQ:TYPE"),
     Int("averages", ":ACQ:AVER"),
     Int("mdepth", ":ACQ:MDEP", keywords=("AUTO",)),
 )
+
+# read-only fields (queried, never written)
+_READONLY = (Float("srate", ":ACQ:SRAT"),)
 
 
 def acquire(
@@ -39,8 +42,5 @@ def acquire(
         query ``:ACQuire:SRATe?`` (the sample rate in samples per second).
     """
     provided = dict(type=type, averages=averages, mdepth=mdepth)
-    write_fields(oscope, _FIELDS, provided)
-    return ACQUIRE(
-        **read_fields(oscope, _FIELDS),
-        srate=float(oscope.query(":ACQ:SRAT?")),
-    )
+    write_fields(oscope, _SETTABLE, provided)
+    return ACQUIRE(**read_fields(oscope, _SETTABLE + _READONLY))
