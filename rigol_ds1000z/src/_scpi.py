@@ -8,6 +8,8 @@ response. A ``Field`` subclass captures that for one value type -- how to
 dispatch, binary transfers) stay as explicit code in the subsystem.
 """
 
+from math import nan
+
 
 class Field:
     """A SCPI parameter; subclasses define ``format`` (set) and ``parse`` (read).
@@ -38,13 +40,20 @@ class Field:
 
 
 class Float(Field):
-    """A float, sent in 6-digit scientific notation (matching the scope's reports)."""
+    """A float, sent in 6-digit scientific notation (matching the scope's reports).
+
+    A non-numeric response -- e.g. ``"measure error!"`` for a measurement the
+    scope cannot compute -- parses to ``nan`` ("unavailable") rather than raising.
+    """
 
     def format(self, value):
         return "{:.6e}".format(value)
 
     def parse(self, response):
-        return float(response)
+        try:
+            return float(response)
+        except ValueError:
+            return nan
 
 
 class Int(Field):
@@ -102,6 +111,29 @@ class Binary(Field):
     def get(self, oscope, **ctx):
         command = self.command.format(**ctx) + "?"
         return oscope.visa_rsrc.query_binary_values(command, self.datatype)
+
+
+class Query(Float):
+    """A float queried with argument(s) after the ``?``; writing enables the item.
+
+    The query argument is the context value named like the field: a single token
+    (``:MEASure:ITEM? VPP``) or a tuple of tokens joined with commas
+    (``:MEASure:STATistic:ITEM? MAX,VPP``); a missing argument reads as ``None``.
+    Writing the field issues the set form with the item alone -- the lone token,
+    or the last element of a tuple -- e.g. ``:MEASure:STATistic:ITEM VPP``.
+    """
+
+    def set(self, oscope, value, **ctx):
+        item = value if isinstance(value, str) else value[-1]
+        oscope.write(self.command + " " + item)
+
+    def get(self, oscope, **ctx):
+        argument = ctx.get(self.name)
+        if argument is None:
+            return None
+        if isinstance(argument, str):
+            argument = (argument,)
+        return self.parse(oscope.query(self.command + "? " + ",".join(argument)))
 
 
 def write_fields(oscope, fields, values, **ctx):
