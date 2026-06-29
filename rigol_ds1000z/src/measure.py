@@ -1,122 +1,128 @@
 from collections import namedtuple
-from math import nan
-from time import sleep
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
-MEASURE = namedtuple("MEASURE", "source counter item value statistics")
-STATISTICS = namedtuple("STATISTICS", "maximum minimum current average deviation")
+from rigol_ds1000z.src._scpi import (
+    Bool,
+    Float,
+    Int,
+    Query,
+    Source,
+    String,
+    read_fields,
+    write_fields,
+)
 
-
-def _to_float(response):
-    """Parse a measurement query response to float.
-
-    The scope returns non-numeric text for a measurement it cannot compute
-    (e.g. ``"measure error!"`` for a rise time with no clean edge on screen).
-    Treat any non-numeric response as ``nan`` ("unavailable") instead of
-    crashing — it sits alongside the ``9.9e37`` invalid-measurement sentinel the
-    scope uses elsewhere.
-    """
-    try:
-        return float(response)
-    except TypeError, ValueError:
-        return nan
+MEASURE = namedtuple(
+    "MEASURE",
+    "source counter_source counter_value "
+    "setup_max setup_mid setup_min setup_psa setup_psb setup_dsa setup_dsb "
+    "statistic_mode statistic_display item statistic_item",
+)
 
 
-# Measurement item mnemonics accepted by ``item`` (DS1000Z programming guide).
-ITEMS = (
-    "VMAX", "VMIN", "VPP", "VTOP", "VBASe", "VAMP", "VAVG", "VRMS",
-    "OVERshoot", "PREShoot", "MARea", "MPARea", "PERiod", "FREQuency",
-    "RTIMe", "FTIMe", "PWIDth", "NWIDth", "PDUTy", "NDUTy", "TVMAX", "TVMIN",
-    "PSLEWrate", "NSLEWrate", "VUPper", "VMID", "VLOWer", "VARIance",
-    "PVRMs", "PPULses", "NPULses", "PEDGes", "NEDGes",
-)  # fmt: skip
+_SETTABLE = (
+    Source("source", ":MEAS:SOUR"),
+    Source("counter_source", ":MEAS:COUN:SOUR"),
+    Int("setup_max", ":MEAS:SET:MAX"),
+    Int("setup_mid", ":MEAS:SET:MID"),
+    Int("setup_min", ":MEAS:SET:MIN"),
+    Source("setup_psa", ":MEAS:SET:PSA"),
+    Source("setup_psb", ":MEAS:SET:PSB"),
+    Source("setup_dsa", ":MEAS:SET:DSA"),
+    Source("setup_dsb", ":MEAS:SET:DSB"),
+    String("statistic_mode", ":MEAS:STAT:MODE"),
+    Bool("statistic_display", ":MEAS:STAT:DISP"),
+    Query("item", ":MEAS:ITEM"),
+    Query("statistic_item", ":MEAS:STAT:ITEM"),
+)
 
-
-def _source_token(source):
-    """Format a channel source as either ``CHAN<n>`` (int) or a literal (str)."""
-    return source if isinstance(source, str) else "CHAN{:d}".format(source)
+_READONLY = (Float("counter_value", ":MEAS:COUN:VAL"),)
 
 
 def measure(
     oscope,
-    source: Union[int, str, None] = None,
-    counter: Union[int, str, None] = None,
     item: Optional[str] = None,
+    statistic_item: Optional[Tuple[str, str]] = None,
+    source: Union[int, str, None] = None,
+    counter_source: Union[int, str, None] = None,
+    setup_max: Optional[int] = None,
+    setup_mid: Optional[int] = None,
+    setup_min: Optional[int] = None,
+    setup_psa: Union[int, str, None] = None,
+    setup_psb: Union[int, str, None] = None,
+    setup_dsa: Union[int, str, None] = None,
+    setup_dsb: Union[int, str, None] = None,
+    statistic_mode: Optional[str] = None,
+    statistic_display: Optional[bool] = None,
+    statistic_reset: Optional[bool] = False,
     clear: Optional[str] = None,
-    statistics: Optional[bool] = None,
 ):
     """
     Send commands to make automatic measurements on an oscilloscope.
-    All arguments are optional. The ``source`` is the default channel used for
-    item measurements; an ``item`` query returns its measured ``value`` against
-    that source. See ``measure.ITEMS`` for the supported item mnemonics
-    (e.g. ``VPP``, ``VAVG``, ``FREQuency``, ``PERiod``, ``PWIDth``).
+    All arguments are optional. The settable fields are written when provided and
+    always queried back. The ``item`` argument names an item to measure; the
+    returned ``item`` field holds its instantaneous value (``:MEASure:ITEM?``).
+    The ``statistic_item`` argument is a ``(type, item)`` pair; the returned
+    ``statistic_item`` field holds that statistic (``:MEASure:STATistic:ITEM?``).
+    Both measure against ``:MEASure:SOURce``, except the two-source items
+    (``RPHase``/``FPHase``, ``RDELay``/``FDELay``) which take their operands from
+    ``setup_psa``/``psb`` and ``setup_dsa``/``dsb``.
 
     Args:
+        item (str): Item to measure instantaneously (e.g. ``VPP``, ``FREQuency``).
+        statistic_item (tuple): A ``(type, item)`` pair mirroring
+            ``:STATistic:ITEM? <type>,<item>``, where ``type`` is ``MAX``/``MIN``/
+            ``CURR``/``AVER``/``DEV``; only types valid in the active
+            ``statistic_mode`` return a number (others are ``nan``).
         source (int, str): ``:MEASure:SOURce`` (a channel number or ``MATH``).
-        counter (int, str): ``:MEASure:COUNter:SOURce`` (a channel or ``OFF``);
-            setting it is followed by a 1s delay so the counter can gate.
-        item (str): The measurement item to query via ``:MEASure:ITEM?``.
+        counter_source (int, str): ``:MEASure:COUNter:SOURce`` (a channel or
+            ``OFF``). After enabling a channel the counter needs time to gate, so
+            ``counter_value`` in the same call may be stale; let it settle (e.g.
+            ``sleep``) before reading it. It reads 0 while the source is ``OFF``.
+        setup_max (int): ``:MEASure:SETup:MAX`` upper threshold %, 7 to 95.
+        setup_mid (int): ``:MEASure:SETup:MID`` middle threshold %, 6 to 94.
+        setup_min (int): ``:MEASure:SETup:MIN`` lower threshold %, 5 to 93.
+        setup_psa (int, str): ``:MEASure:SETup:PSA`` phase source A.
+        setup_psb (int, str): ``:MEASure:SETup:PSB`` phase source B.
+        setup_dsa (int, str): ``:MEASure:SETup:DSA`` delay source A.
+        setup_dsb (int, str): ``:MEASure:SETup:DSB`` delay source B.
+        statistic_mode (str): ``:MEASure:STATistic:MODE`` (``EXTRemum`` reports
+            min/max, ``DIFFerence`` reports deviation/count).
+        statistic_display (bool): ``:MEASure:STATistic:DISPlay``.
+        statistic_reset (bool): When ``True``, send ``:MEASure:STATistic:RESet``.
         clear (str): ``:MEASure:CLEar`` (``ITEM1`` through ``ITEM5`` or ``ALL``).
-        statistics (bool): When ``True`` and an ``item`` is given, enable the
-            statistics display (``:MEASure:STATistic:DISPlay``) and report the
-            item's statistics.
 
     Returns:
-        A namedtuple with fields ``source``, ``counter``, ``item``, ``value``,
-        and ``statistics``. ``source`` and ``counter`` are always queried.
-        ``counter`` is the frequency counter value (``:MEASure:COUNter:VALue?``)
-        or ``None`` when the counter source is ``OFF``. ``item`` echoes the
-        queried item and ``value`` is its float result, both ``None`` when no
-        ``item`` was given. ``statistics`` is a ``STATISTICS`` namedtuple
-        (``maximum``, ``minimum``, ``current``, ``average``, ``deviation``)
-        when requested, otherwise ``None``.
+        A namedtuple of the settable fields read back, plus ``counter_value``
+        (``:MEASure:COUNter:VALue?``) and the measured ``item`` and
+        ``statistic_item`` values (each ``None`` when that item was not requested).
     """
-    if source is not None:
-        oscope.write(":MEAS:SOUR " + _source_token(source))
-
-    if counter is not None:
-        oscope.write(":MEAS:COUN:SOUR " + _source_token(counter))
-        sleep(1)  # allow the frequency counter to gate before its value is read
-
-    if clear is not None:
-        oscope.write(":MEAS:CLE " + clear)
-
-    source_query = oscope.query(":MEAS:SOUR?")
-    if source_query.startswith("CHAN"):
-        source_query = int(source_query[-1])
-
-    counter_source = oscope.query(":MEAS:COUN:SOUR?")
-    counter_value = (
-        None if counter_source == "OFF" else _to_float(oscope.query(":MEAS:COUN:VAL?"))
+    provided = dict(
+        source=source,
+        counter_source=counter_source,
+        setup_max=setup_max,
+        setup_mid=setup_mid,
+        setup_min=setup_min,
+        setup_psa=setup_psa,
+        setup_psb=setup_psb,
+        setup_dsa=setup_dsa,
+        setup_dsb=setup_dsb,
+        statistic_mode=statistic_mode,
+        statistic_display=statistic_display,
+        item=item,
+        statistic_item=statistic_item,
     )
-
-    value = None
-    statistics_query = None
-    if item is not None:
-        src = _source_token(source_query)
-        value = _to_float(oscope.query(":MEAS:ITEM? {:s},{:s}".format(item, src)))
-
-        if statistics:
-            oscope.write(":MEAS:STAT:DISP 1")
-            oscope.write(":MEAS:STAT:ITEM {:s},{:s}".format(item, src))
-
-            def _stat(kind):
-                query = ":MEAS:STAT:ITEM? {:s},{:s}".format(kind, item)
-                return _to_float(oscope.query(query))
-
-            statistics_query = STATISTICS(
-                maximum=_stat("MAX"),
-                minimum=_stat("MIN"),
-                current=_stat("CURR"),
-                average=_stat("AVER"),
-                deviation=_stat("DEV"),
-            )
+    if statistic_reset:
+        oscope.write(":MEAS:STAT:RES")  # write-only action; no :STAT:RESet? query
+    if clear is not None:
+        oscope.write(":MEAS:CLE " + clear)  # write-only action; no :CLEar? query
+    write_fields(oscope, _SETTABLE, provided)
 
     return MEASURE(
-        source=source_query,
-        counter=counter_value,
-        item=item,
-        value=value,
-        statistics=statistics_query,
+        **read_fields(
+            oscope,
+            _SETTABLE + _READONLY,
+            item=item,
+            statistic_item=statistic_item,
+        )
     )
