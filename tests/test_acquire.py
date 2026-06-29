@@ -1,13 +1,4 @@
-from pytest import fixture
-
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
+from pytest import approx
 
 
 def test_type(oscope):
@@ -22,9 +13,17 @@ def test_averages(oscope):
     assert oscope.acquire(averages=16).averages == 16
 
 
-def test_memdepth(oscope):
-    assert oscope.acquire(memdepth="AUTO").memdepth == "AUTO"
+def test_mdepth(oscope):
+    assert oscope.acquire(mdepth=12000).mdepth == 12000
+    assert oscope.acquire(mdepth="AUTO").mdepth == "AUTO"
 
 
 def test_srate(oscope):
-    assert oscope.acquire().srate > 0
+    # the acquisition window spans 12 horizontal divisions, so
+    # sample rate = memory depth / (timebase scale x 12)
+    main_scale = 1e-3
+    mdepth = 12000
+    oscope.timebase(main_scale=main_scale)
+    acquire = oscope.acquire(mdepth=mdepth)
+    expected = mdepth / (main_scale * 12)
+    assert acquire.srate == approx(expected, rel=1e-3)

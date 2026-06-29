@@ -1,17 +1,21 @@
 # byte-compiled python
 __pycache__/
 
-# pyenv
-.python-version
+# build artifacts
+/dist/
+/build/
+*.egg-info/
 
-# poetry
-poetry.lock
+# tooling caches
+.mypy_cache/
+.pytest_cache/
 
 # jupyterlab
 .ipynb_checkpoints/
 
 # pytest
 .coverage
+docs/coverage
 
 # sphinx
 docs/build

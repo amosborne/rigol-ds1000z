@@ -1,13 +1,27 @@
 from collections import namedtuple
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+from rigol_ds1000z.src._scpi import Bool, Float, String, read_fields, write_fields
+
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
 
 TIMEBASE = namedtuple(
     "TIMEBASE", "mode main_scale main_offset delay_enable delay_scale delay_offset"
 )
 
+_SETTABLE = (
+    String("mode", ":TIM:MODE"),
+    Float("main_scale", ":TIM:SCAL"),
+    Float("main_offset", ":TIM:OFFS"),
+    Bool("delay_enable", ":TIM:DEL:ENAB"),
+    Float("delay_scale", ":TIM:DEL:SCAL"),
+    Float("delay_offset", ":TIM:DEL:OFFS"),
+)
+
 
 def timebase(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     mode: Optional[str] = None,
     main_scale: Optional[float] = None,
     main_offset: Optional[float] = None,
@@ -28,32 +42,16 @@ def timebase(
         delay_offset (float): ``:TIMebase:DELay:OFFSet``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided.
     """
-    if mode is not None:
-        oscope.write(":TIM:MODE " + mode)
-
-    if main_scale is not None:
-        oscope.write(":TIM:SCAL {:0.10f}".format(main_scale))
-
-    if main_offset is not None:
-        oscope.write(":TIM:OFFS {:0.10f}".format(main_offset))
-
-    if delay_enable is not None:
-        oscope.write(":TIM:DEL:ENAB {:d}".format(delay_enable))
-
-    if delay_scale is not None:
-        oscope.write(":TIM:DEL:SCAL {:0.10f}".format(delay_scale))
-
-    if delay_offset is not None:
-        oscope.write(":TIM:DEL:OFFS {:0.10f}".format(delay_offset))
-
-    return TIMEBASE(
-        mode=oscope.query(":TIM:MODE?"),
-        main_scale=float(oscope.query(":TIM:SCAL?")),
-        main_offset=float(oscope.query(":TIM:OFFS?")),
-        delay_enable=bool(int(oscope.query(":TIM:DEL:ENAB?"))),
-        delay_scale=float(oscope.query(":TIM:DEL:SCAL?")),
-        delay_offset=float(oscope.query(":TIM:DEL:OFFS?")),
+    provided = dict(
+        mode=mode,
+        main_scale=main_scale,
+        main_offset=main_offset,
+        delay_enable=delay_enable,
+        delay_scale=delay_scale,
+        delay_offset=delay_offset,
     )
+    write_fields(oscope, _SETTABLE, provided)
+    return TIMEBASE(**read_fields(oscope, _SETTABLE))

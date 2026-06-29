@@ -1,15 +1,3 @@
-from pytest import fixture
-
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
-
-
 def test_mode(oscope):
     for mode in ["MAIN", "XY", "ROLL"]:
         assert oscope.timebase(mode=mode).mode == mode

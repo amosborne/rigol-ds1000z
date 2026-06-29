@@ -1,14 +1,35 @@
 from collections import namedtuple
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+from rigol_ds1000z.src._scpi import Bool, Float, String, read_fields, write_fields
+
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
 
 CHANNEL = namedtuple(
     "CHANNEL",
-    "bwlimit coupling display invert offset range tcal scale probe units vernier",
+    "bwlimit coupling display invert vernier probe range scale offset tcal units",
+)
+
+# Declaration order is the write order. ``range``, ``scale``, and ``offset`` are
+# potentially conflicting and are deliberately issued in that order.
+_SETTABLE = (
+    Bool("bwlimit", ":CHAN{n}:BWL", true="20M", false="OFF"),
+    String("coupling", ":CHAN{n}:COUP"),
+    Bool("display", ":CHAN{n}:DISP"),
+    Bool("invert", ":CHAN{n}:INV"),
+    Bool("vernier", ":CHAN{n}:VERN"),
+    Float("probe", ":CHAN{n}:PROB"),
+    Float("range", ":CHAN{n}:RANG"),
+    Float("scale", ":CHAN{n}:SCAL"),
+    Float("offset", ":CHAN{n}:OFFS"),
+    Float("tcal", ":CHAN{n}:TCAL"),
+    String("units", ":CHAN{n}:UNIT"),
 )
 
 
 def channel(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     n: int,
     bwlimit: Optional[bool] = None,
     coupling: Optional[str] = None,
@@ -43,55 +64,21 @@ def channel(
         vernier (bool): ``:CHANnel<n>:VERNier``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided.
     """
-    root = ":CHAN{:d}:".format(n)
-
-    if bwlimit is not None:
-        cmd = "20M" if bwlimit else "OFF"
-        oscope.write(root + "BWL " + cmd)
-
-    if coupling is not None:
-        oscope.write(root + "COUP " + coupling)
-
-    if display is not None:
-        oscope.write(root + "DISP {:d}".format(display))
-
-    if invert is not None:
-        oscope.write(root + "INV {:d}".format(invert))
-
-    if vernier is not None:
-        oscope.write(root + "VERN {:d}".format(vernier))
-
-    if probe is not None:
-        oscope.write(root + "PROB {:0.2f}".format(probe))
-
-    if range is not None:
-        oscope.write(root + "RANG {:0.10f}".format(range))
-
-    if scale is not None:
-        oscope.write(root + "SCAL {:0.10f}".format(scale))
-
-    if offset is not None:
-        oscope.write(root + "OFFS {:0.10f}".format(offset))
-
-    if tcal is not None:
-        oscope.write(root + "TCAL {:0.10f}".format(tcal))
-
-    if units is not None:
-        oscope.write(root + "UNIT " + units)
-
-    return CHANNEL(
-        bwlimit=oscope.query(root + "BWL?") == "20M",
-        coupling=oscope.query(root + "COUP?"),
-        display=bool(int(oscope.query(root + "DISP?"))),
-        invert=bool(int(oscope.query(root + "INV?"))),
-        vernier=bool(int(oscope.query(root + "VERN?"))),
-        probe=float(oscope.query(root + "PROB?")),
-        offset=float(oscope.query(root + "OFFS?")),
-        range=float(oscope.query(root + "RANG?")),
-        scale=float(oscope.query(root + "SCAL?")),
-        tcal=float(oscope.query(root + "TCAL?")),
-        units=oscope.query(root + "UNIT?"),
+    provided = dict(
+        bwlimit=bwlimit,
+        coupling=coupling,
+        display=display,
+        invert=invert,
+        vernier=vernier,
+        probe=probe,
+        range=range,
+        scale=scale,
+        offset=offset,
+        tcal=tcal,
+        units=units,
     )
+    write_fields(oscope, _SETTABLE, provided, n=n)
+    return CHANNEL(**read_fields(oscope, _SETTABLE, n=n))

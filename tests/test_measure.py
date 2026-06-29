@@ -1,13 +1,6 @@
-from pytest import approx, fixture
+from time import sleep
 
-from rigol_ds1000z import Rigol_DS1000Z
-
-
-@fixture(scope="function")
-def oscope():
-    with Rigol_DS1000Z() as oscope:
-        oscope.ieee(rst=True)
-        yield oscope
+from pytest import approx
 
 
 def test_source(oscope):
@@ -17,26 +10,30 @@ def test_source(oscope):
 
 def test_item(oscope):
     oscope.autoscale()
-
-    measure = oscope.measure(source=2, item="VPP")
-    assert measure.item == "VPP"
-    assert measure.value == approx(3.0, rel=0.2)  # calibration square wave ~3 Vpp
+    # calibration square wave ~3 Vpp
+    assert oscope.measure(source=2, item="VPP").item == approx(3.0, rel=0.2)
 
 
 def test_frequency(oscope):
     oscope.autoscale()
-    assert oscope.measure(source=2, item="FREQ").value == approx(1e3, rel=0.2)
+    assert oscope.measure(source=2, item="FREQ").item == approx(1e3, rel=0.2)
 
 
 def test_counter(oscope):
     oscope.autoscale()
-    assert oscope.measure(counter=2).counter == approx(1e3, rel=0.2)
-    assert oscope.measure(counter="OFF").counter is None
+    oscope.measure(counter_source=2)
+    sleep(1)  # let the counter gate before reading its value
+    assert oscope.measure().counter_value == approx(1e3, rel=0.2)
+    assert oscope.measure(counter_source="OFF").counter_value == 0
 
 
 def test_statistics(oscope):
     oscope.autoscale()
-
-    measure = oscope.measure(source=2, item="VPP", statistics=True)
-    assert measure.statistics is not None
-    assert measure.statistics.current == approx(measure.value, rel=0.2)
+    measure = oscope.measure(
+        source=2,
+        statistic_item=("CURR", "VPP"),
+        statistic_mode="EXTR",
+        statistic_display=True,
+    )
+    assert measure.statistic_mode == "EXTR"
+    assert measure.statistic_item == approx(3.0, rel=0.2)

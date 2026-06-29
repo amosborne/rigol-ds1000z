@@ -4,7 +4,6 @@ from rich.table import Table
 from textual.reactive import Reactive
 
 from rigol_ds1000z import Rigol_DS1000Z
-from rigol_ds1000z.app.channel_tui import Channel_TUI
 from rigol_ds1000z.app.tablecontrol_tui import TableControl_TUI, _float2si
 
 TRIGGER_MODES = {
@@ -30,13 +29,13 @@ class Trigger_TUI(TableControl_TUI):
 
     status: Reactive[RenderableType] = Reactive("")
     sweep: Reactive[RenderableType] = Reactive("")
-    noisereject: Reactive[RenderableType] = Reactive("")
+    nreject: Reactive[RenderableType] = Reactive("")
     mode: Reactive[RenderableType] = Reactive("")
     holdoff: Reactive[RenderableType] = Reactive("")
     coupling: Reactive[RenderableType] = Reactive("")
-    source: Reactive[RenderableType] = Reactive("")
-    slope: Reactive[RenderableType] = Reactive("")
-    level: Reactive[RenderableType] = Reactive("")
+    edge_source: Reactive[RenderableType] = Reactive("")
+    edge_slope: Reactive[RenderableType] = Reactive("")
+    edge_level: Reactive[RenderableType] = Reactive("")
 
     def __init__(self, oscope: Rigol_DS1000Z, channels) -> None:
         self.channels = channels
@@ -46,7 +45,7 @@ class Trigger_TUI(TableControl_TUI):
         trigger = self.oscope.trigger(**kwargs)
         self.status = trigger.status
         self.sweep = trigger.sweep
-        self.noisereject = "ON" if trigger.noisereject else "OFF"
+        self.nreject = "ON" if trigger.nreject else "OFF"
         self.mode = TRIGGER_MODES[trigger.mode]
         self.holdoff = (
             _float2si(trigger.holdoff, sigfigs=3, unit="s")
@@ -54,24 +53,24 @@ class Trigger_TUI(TableControl_TUI):
             else None
         )
         self.coupling = trigger.coupling if trigger.mode == "EDGE" else None
-        self.slope = trigger.slope if trigger.mode == "EDGE" else None
-        self.level = (
+        self.edge_slope = trigger.edge_slope if trigger.mode == "EDGE" else None
+        self.edge_level = (
             _float2si(
-                trigger.level,
+                trigger.edge_level,
                 sigfigs=3,
-                unit=self.channels[trigger.source - 1].units[1],
+                unit=self.channels[trigger.edge_source - 1].units[1],
             )
-            if trigger.mode == "EDGE" and not trigger.source == "AC"
+            if trigger.mode == "EDGE" and not trigger.edge_source == "AC"
             else None
         )
 
         if trigger.mode == "EDGE":
-            if isinstance(trigger.source, int):
-                self.source = "CHAN{:d}".format(trigger.source)
+            if isinstance(trigger.edge_source, int):
+                self.edge_source = "CHAN{:d}".format(trigger.edge_source)
             else:
-                self.source = trigger.source
+                self.edge_source = trigger.edge_source
         else:
-            self.source = None
+            self.edge_source = None
 
     def render(self) -> RenderableType:
         table = Table(box=None, show_header=False)
@@ -82,20 +81,20 @@ class Trigger_TUI(TableControl_TUI):
         table.add_row("Type", self._create_field(field="mode"))
 
         if self.mode == "Edge":
-            table.add_row("Source", self._create_field(field="source"))
-            if self.source == "AC":
-                table.add_row("Slope", self._create_field(field="slope"))
+            table.add_row("Source", self._create_field(field="edge_source"))
+            if self.edge_source == "AC":
+                table.add_row("Slope", self._create_field(field="edge_slope"))
                 table.add_row("Coupling", self.coupling)
                 table.add_row("Holdoff", self._create_field(field="holdoff"))
-                table.add_row("NoiseReject", self.noisereject)
+                table.add_row("NoiseReject", self.nreject)
             else:
-                table.add_row("Level", self._create_field(field="level"))
-                table.add_row("Slope", self._create_field(field="slope"))
+                table.add_row("Level", self._create_field(field="edge_level"))
+                table.add_row("Slope", self._create_field(field="edge_slope"))
                 table.add_row("Coupling", self._create_field(field="coupling"))
                 table.add_row("Holdoff", self._create_field(field="holdoff"))
-                table.add_row("NoiseReject", self._create_field(field="noisereject"))
+                table.add_row("NoiseReject", self._create_field(field="nreject"))
         else:
-            table.add_row("NoiseReject", self._create_field(field="noisereject"))
+            table.add_row("NoiseReject", self._create_field(field="nreject"))
 
         return Panel(table, title="Trigger")
 
@@ -110,8 +109,8 @@ class Trigger_TUI(TableControl_TUI):
         idx = 0 if idx == len(SWEEP_OPTIONS) else idx
         self.update_oscope(sweep=SWEEP_OPTIONS[idx])
 
-    async def edit_noisereject(self):
-        self.update_oscope(noisereject=self.noisereject == "OFF")
+    async def edit_nreject(self):
+        self.update_oscope(nreject=self.nreject == "OFF")
 
     async def edit_mode(self):
         MODE_OPTIONS, MODE_NAMES = zip(*list(TRIGGER_MODES.items()))
@@ -119,11 +118,11 @@ class Trigger_TUI(TableControl_TUI):
         idx = 0 if idx == len(MODE_OPTIONS) else idx
         self.update_oscope(mode=MODE_OPTIONS[idx])
 
-    async def edit_source(self):
+    async def edit_edge_source(self):
         SOURCE_OPTIONS = ["CHAN1", "CHAN2", "CHAN3", "CHAN4", "AC"]
-        idx = SOURCE_OPTIONS.index(self.source) + 1
+        idx = SOURCE_OPTIONS.index(self.edge_source) + 1
         idx = 0 if idx == len(SOURCE_OPTIONS) else idx
-        self.update_oscope(source=SOURCE_OPTIONS[idx])
+        self.update_oscope(edge_source=SOURCE_OPTIONS[idx])
 
     async def edit_coupling(self):
         COUPLING_OPTIONS = ["AC", "DC", "LFR", "HFR"]
@@ -131,14 +130,14 @@ class Trigger_TUI(TableControl_TUI):
         idx = 0 if idx == len(COUPLING_OPTIONS) else idx
         self.update_oscope(coupling=COUPLING_OPTIONS[idx])
 
-    async def edit_slope(self):
+    async def edit_edge_slope(self):
         SLOPE_OPTIONS = ["POS", "NEG", "RFAL"]
-        idx = SLOPE_OPTIONS.index(self.slope) + 1
+        idx = SLOPE_OPTIONS.index(self.edge_slope) + 1
         idx = 0 if idx == len(SLOPE_OPTIONS) else idx
-        self.update_oscope(slope=SLOPE_OPTIONS[idx])
+        self.update_oscope(edge_slope=SLOPE_OPTIONS[idx])
 
-    async def edit_level(self):
-        self._edit_field("level")
+    async def edit_edge_level(self):
+        self._edit_field("edge_level")
 
     async def edit_holdoff(self):
         self._edit_field("holdoff")
