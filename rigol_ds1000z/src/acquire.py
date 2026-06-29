@@ -1,9 +1,12 @@
 from collections import namedtuple
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from rigol_ds1000z.src._scpi import Float, Int, String, read_fields, write_fields
 
-ACQUIRE = namedtuple("ACQUIRE", "averages mdepth srate type")
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
+
+ACQUIRE = namedtuple("ACQUIRE", "type averages mdepth srate")
 
 # ``type`` is declared first so it is written before ``averages`` (averages only
 # takes effect while the type is AVERages). ``mdepth`` is an integer point count
@@ -19,7 +22,7 @@ _READONLY = (Float("srate", ":ACQ:SRAT"),)
 
 
 def acquire(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     averages: Optional[int] = None,
     mdepth: Union[int, str, None] = None,
     type: Optional[str] = None,
@@ -36,10 +39,9 @@ def acquire(
         type (str): ``:ACQuire:TYPE`` (``NORM``, ``AVER``, ``PEAK``, or ``HRES``).
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
-        The ``srate`` field is additionally provided as a result of the
-        query ``:ACQuire:SRATe?`` (the sample rate in samples per second).
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided, plus the read-only ``srate`` (``:ACQuire:SRATe?``,
+        the sample rate in samples per second).
     """
     provided = dict(type=type, averages=averages, mdepth=mdepth)
     write_fields(oscope, _SETTABLE, provided)

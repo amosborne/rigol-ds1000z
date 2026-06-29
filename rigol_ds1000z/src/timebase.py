@@ -1,7 +1,10 @@
 from collections import namedtuple
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from rigol_ds1000z.src._scpi import Bool, Float, String, read_fields, write_fields
+
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
 
 TIMEBASE = namedtuple(
     "TIMEBASE", "mode main_scale main_offset delay_enable delay_scale delay_offset"
@@ -18,7 +21,7 @@ _SETTABLE = (
 
 
 def timebase(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     mode: Optional[str] = None,
     main_scale: Optional[float] = None,
     main_offset: Optional[float] = None,
@@ -39,8 +42,8 @@ def timebase(
         delay_offset (float): ``:TIMebase:DELay:OFFSet``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided.
     """
     provided = dict(
         mode=mode,

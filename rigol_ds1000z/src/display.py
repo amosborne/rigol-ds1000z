@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from rigol_ds1000z.src._scpi import (
     Binary,
@@ -10,7 +10,10 @@ from rigol_ds1000z.src._scpi import (
     write_fields,
 )
 
-DISPLAY = namedtuple("DISPLAY", "data type grading_time wbrightness grid gbrightness")
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
+
+DISPLAY = namedtuple("DISPLAY", "type grading_time wbrightness grid gbrightness data")
 
 _SETTABLE = (
     String("type", ":DISP:TYPE"),
@@ -25,7 +28,7 @@ _READONLY = (Binary("data", ":DISP:DATA"),)
 
 
 def display(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     type: Optional[str] = None,
     grading_time: Union[str, float, None] = None,
     wbrightness: Optional[int] = None,
@@ -43,10 +46,9 @@ def display(
         gbrightness: ``:DISPlay:GBRightness``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
-        The ``data`` field is additionally provided as a result of the query
-        ``:DISPlay:DATA?``.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided, plus the read-only ``data`` screen capture
+        (``:DISPlay:DATA?``).
     """
     provided = dict(
         type=type,

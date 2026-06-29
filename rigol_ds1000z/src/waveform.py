@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from rigol_ds1000z.src._scpi import (
     Binary,
@@ -10,11 +10,14 @@ from rigol_ds1000z.src._scpi import (
     write_fields,
 )
 
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
+
 WAVEFORM = namedtuple(
     "WAVEFORM",
     (
-        "source mode format data xincrement xorigin xreference "
-        "yincrement yorigin yreference start stop points count"
+        "source mode format start stop data points count "
+        "xincrement xorigin xreference yincrement yorigin yreference"
     ),
 )
 
@@ -55,7 +58,7 @@ def _read_preamble(oscope):
 
 
 def waveform(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     source: Union[int, str, None] = None,
     mode: Optional[str] = None,
     format: Optional[str] = None,
@@ -74,11 +77,10 @@ def waveform(
         stop (int): ``:WAVeform:STOP``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
-        The ``data`` field holds the captured samples (``:WAVeform:DATA?``). The
-        ``points`` and ``count`` fields and the X/Y scaling factors used for
-        post-processing are parsed from ``:WAVeform:PREamble?``.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided. The ``data`` field holds the captured samples
+        (``:WAVeform:DATA?``); ``points``, ``count``, and the X/Y scaling factors
+        (for post-processing) are parsed from ``:WAVeform:PREamble?``.
     """
     provided = dict(source=source, mode=mode, format=format, start=start, stop=stop)
     write_fields(oscope, _SETTABLE, provided)

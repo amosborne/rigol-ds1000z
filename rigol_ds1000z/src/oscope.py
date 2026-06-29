@@ -17,8 +17,8 @@ class Rigol_DS1000Z:
     """
     A class for communicating with a Rigol DS1000Z series oscilloscope.
     This class is compatible with context managers. The functional interfaces
-    ``channel``, ``timebase``, ``display``, ``waveform``, ``trigger``,
-    ``measure``, and ``acquire`` are bound to this object as partial functions.
+    ``acquire``, ``channel``, ``display``, ``measure``, ``timebase``,
+    ``trigger``, and ``waveform`` are bound to this object as partial functions.
     IEEE 488.2 common commands (e.g. ``idn``, ``rst``, ``cls``, ``opc``) are
     available as methods.
 
@@ -37,13 +37,13 @@ class Rigol_DS1000Z:
                 if self.visa_name == visa:
                     self.visa_backend = backend
 
-        self.channel = partial(channel, self)
-        self.timebase = partial(timebase, self)
-        self.display = partial(display, self)
-        self.waveform = partial(waveform, self)
-        self.trigger = partial(trigger, self)
-        self.measure = partial(measure, self)
         self.acquire = partial(acquire, self)
+        self.channel = partial(channel, self)
+        self.display = partial(display, self)
+        self.measure = partial(measure, self)
+        self.timebase = partial(timebase, self)
+        self.trigger = partial(trigger, self)
+        self.waveform = partial(waveform, self)
 
     def __enter__(self):
         return self.open()
