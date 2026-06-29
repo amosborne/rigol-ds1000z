@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 from rigol_ds1000z.src._scpi import (
     Bool,
@@ -12,11 +12,14 @@ from rigol_ds1000z.src._scpi import (
     write_fields,
 )
 
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
+
 MEASURE = namedtuple(
     "MEASURE",
-    "source counter_source counter_value "
+    "source counter_source "
     "setup_max setup_mid setup_min setup_psa setup_psb setup_dsa setup_dsb "
-    "statistic_mode statistic_display item statistic_item",
+    "statistic_mode statistic_display item statistic_item counter_value",
 )
 
 
@@ -40,7 +43,7 @@ _READONLY = (Float("counter_value", ":MEAS:COUN:VAL"),)
 
 
 def measure(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     item: Optional[str] = None,
     statistic_item: Optional[Tuple[str, str]] = None,
     source: Union[int, str, None] = None,
@@ -54,7 +57,7 @@ def measure(
     setup_dsb: Union[int, str, None] = None,
     statistic_mode: Optional[str] = None,
     statistic_display: Optional[bool] = None,
-    statistic_reset: Optional[bool] = False,
+    statistic_reset: Optional[bool] = None,
     clear: Optional[str] = None,
 ):
     """
@@ -93,9 +96,10 @@ def measure(
         clear (str): ``:MEASure:CLEar`` (``ITEM1`` through ``ITEM5`` or ``ALL``).
 
     Returns:
-        A namedtuple of the settable fields read back, plus ``counter_value``
-        (``:MEASure:COUNter:VALue?``) and the measured ``item`` and
-        ``statistic_item`` values (each ``None`` when that item was not requested).
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided, plus the read-only ``counter_value``
+        (``:MEASure:COUNter:VALue?``). ``item`` and ``statistic_item`` read back the
+        measured value, or ``None`` when that item was not requested.
     """
     provided = dict(
         source=source,

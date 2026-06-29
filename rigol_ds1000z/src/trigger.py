@@ -1,246 +1,165 @@
 from collections import namedtuple
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
+
+from rigol_ds1000z.src._scpi import (
+    Bool,
+    Float,
+    Int,
+    Source,
+    String,
+    read_fields,
+    write_fields,
+)
+
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
 
 TRIGGER = namedtuple(
     "TRIGGER",
-    "status sweep noisereject mode holdoff coupling source slope level "
-    "when upper lower window alevel blevel time",
-    # status, sweep, noisereject, mode are required; the rest default to None
-    defaults=(None, None, None, None, None, None, None, None, None, None, None, None),
+    "sweep holdoff nreject mode "
+    "coupling edge_source edge_slope edge_level "
+    "pulse_source pulse_when pulse_width pulse_uwidth pulse_lwidth pulse_level "
+    "slope_source slope_when slope_time slope_tupper slope_tlower slope_window "
+    "slope_alevel slope_blevel status position",
 )
 
+# top-level controls -- written when provided and always queried back
+_TOP = (
+    String("sweep", ":TRIG:SWE"),
+    Float("holdoff", ":TRIG:HOLD"),
+    Bool("nreject", ":TRIG:NREJ"),
+    String("mode", ":TRIG:MODE"),
+)
 
-def _source_token(source):
-    """Format a channel source as either ``CHAN<n>`` (int) or a literal (str)."""
-    return source if isinstance(source, str) else "CHAN{:d}".format(source)
+# top-level, query-only
+_READONLY = (
+    String("status", ":TRIG:STAT"),
+    Int("position", ":TRIG:POS"),
+)
 
+# per-mode parameters -- read back only while that mode is active, so an inactive
+# mode's query never errors (``coupling`` is an edge-only top-level command)
+_EDGE = (
+    String("coupling", ":TRIG:COUP"),
+    Source("edge_source", ":TRIG:EDG:SOUR"),
+    String("edge_slope", ":TRIG:EDG:SLOP"),
+    Float("edge_level", ":TRIG:EDG:LEV"),
+)
+_PULSE = (
+    Source("pulse_source", ":TRIG:PULS:SOUR"),
+    String("pulse_when", ":TRIG:PULS:WHEN"),
+    Float("pulse_width", ":TRIG:PULS:WIDT"),
+    Float("pulse_uwidth", ":TRIG:PULS:UWID"),
+    Float("pulse_lwidth", ":TRIG:PULS:LWID"),
+    Float("pulse_level", ":TRIG:PULS:LEV"),
+)
+_SLOPE = (
+    Source("slope_source", ":TRIG:SLOP:SOUR"),
+    String("slope_when", ":TRIG:SLOP:WHEN"),
+    Float("slope_time", ":TRIG:SLOP:TIME"),
+    Float("slope_tupper", ":TRIG:SLOP:TUPP"),
+    Float("slope_tlower", ":TRIG:SLOP:TLOW"),
+    String("slope_window", ":TRIG:SLOP:WIND"),
+    Float("slope_alevel", ":TRIG:SLOP:ALEV"),
+    Float("slope_blevel", ":TRIG:SLOP:BLEV"),
+)
 
-def _source_value(query):
-    """Coerce a queried source into an int channel number or a literal string.
-
-    Any non-channel source (such as ``AC`` or ``EXT``) is returned verbatim
-    rather than being passed to ``int()``, which the original code would only
-    avoid for the literal ``AC``.
-    """
-    return int(query[-1]) if query.startswith("CHAN") else query
+_MODES = {"EDGE": _EDGE, "PULS": _PULSE, "SLOP": _SLOPE}
+_SETTABLE = _TOP + _EDGE + _PULSE + _SLOPE
 
 
 def trigger(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     sweep: Optional[str] = None,
-    noisereject: Optional[bool] = None,
-    mode: Optional[str] = None,
     holdoff: Optional[float] = None,
+    nreject: Optional[bool] = None,
+    mode: Optional[str] = None,
     coupling: Optional[str] = None,
-    source: Union[int, str, None] = None,
-    slope: Optional[str] = None,
-    level: Optional[float] = None,
-    when: Optional[str] = None,
-    upper: Optional[float] = None,
-    lower: Optional[float] = None,
-    window: Optional[str] = None,
-    alevel: Optional[float] = None,
-    blevel: Optional[float] = None,
-    time: Optional[float] = None,
+    edge_source: Union[int, str, None] = None,
+    edge_slope: Optional[str] = None,
+    edge_level: Optional[float] = None,
+    pulse_source: Union[int, str, None] = None,
+    pulse_when: Optional[str] = None,
+    pulse_width: Optional[float] = None,
+    pulse_uwidth: Optional[float] = None,
+    pulse_lwidth: Optional[float] = None,
+    pulse_level: Optional[float] = None,
+    slope_source: Union[int, str, None] = None,
+    slope_when: Optional[str] = None,
+    slope_time: Optional[float] = None,
+    slope_tupper: Optional[float] = None,
+    slope_tlower: Optional[float] = None,
+    slope_window: Optional[str] = None,
+    slope_alevel: Optional[float] = None,
+    slope_blevel: Optional[float] = None,
 ):
     """
-    Send commands to control an oscilloscope's triggering behavior.
-    The ``EDGE``, ``PULSe``, and ``SLOPe`` trigger modes are supported.
-    All arguments are optional. Depending on the triggering mode, only the
-    applicable arguments are utilized by the relevant helper function.
+    Send commands to control an oscilloscope's trigger system.
+    All arguments are optional. Field names mirror the SCPI command tree
+    (``edge_level`` <- ``:TRIGger:EDGe:LEVel``). Provided fields are written, then
+    the top-level fields and the fields of the *active* ``:TRIGger:MODE`` are
+    queried back; the other modes' fields come back ``None``.
 
     Args:
-        sweep (str): ``:TRIGger:SWEep``
-        noisereject (bool): ``:TRIGger:NREJect``
-        mode (str): ``:TRIGger:MODE``
-        holdoff (float): See ``trigger_edge``.
-        coupling (str): See ``trigger_edge``.
-        source (int, str): See helper functions.
-        slope (str): See ``trigger_edge``.
-        level (float): See ``trigger_edge``, ``trigger_pulse``.
-        when (str): See ``trigger_pulse``, ``trigger_slope``.
-        upper (float): See ``trigger_pulse``, ``trigger_slope``.
-        lower (float): See ``trigger_pulse``, ``trigger_slope``.
-        window (str): See ``trigger_slope``.
-        alevel (float): See ``trigger_slope``.
-        blevel (float): See ``trigger_slope``.
-        time (float): See ``trigger_slope``.
+        sweep (str): ``:TRIGger:SWEep`` (``AUTO``/``NORMal``/``SINGle``). Setting
+            ``SINGle`` arms one acquisition; let it settle (e.g. ``sleep``) before
+            reading ``status``.
+        holdoff (float): ``:TRIGger:HOLDoff`` (16ns to 10s).
+        nreject (bool): ``:TRIGger:NREJect`` noise rejection.
+        mode (str): ``:TRIGger:MODE`` (``EDGE``/``PULSe``/``SLOPe``).
+        coupling (str): ``:TRIGger:COUPling`` (``AC``/``DC``/``LFReject``/
+            ``HFReject``); edge trigger only.
+        edge_source (int, str): ``:TRIGger:EDGe:SOURce`` (a channel or ``AC``).
+        edge_slope (str): ``:TRIGger:EDGe:SLOPe`` (``POSitive``/``NEGative``/``RFALl``).
+        edge_level (float): ``:TRIGger:EDGe:LEVel``.
+        pulse_source (int, str): ``:TRIGger:PULSe:SOURce``.
+        pulse_when (str): ``:TRIGger:PULSe:WHEN`` (``PGReater``/``PLESs``/
+            ``NGReater``/``NLESs``/``PGLess``/``NGLess``).
+        pulse_width (float): ``:TRIGger:PULSe:WIDTh`` (single-threshold ``WHEN``).
+        pulse_uwidth (float): ``:TRIGger:PULSe:UWIDth`` (``PGLess``/``NGLess``).
+        pulse_lwidth (float): ``:TRIGger:PULSe:LWIDth`` (``PGLess``/``NGLess``).
+        pulse_level (float): ``:TRIGger:PULSe:LEVel``.
+        slope_source (int, str): ``:TRIGger:SLOPe:SOURce``.
+        slope_when (str): ``:TRIGger:SLOPe:WHEN`` (same set as ``pulse_when``).
+        slope_time (float): ``:TRIGger:SLOPe:TIME`` (single-threshold ``WHEN``).
+        slope_tupper (float): ``:TRIGger:SLOPe:TUPPer`` (``PGLess``/``NGLess``).
+        slope_tlower (float): ``:TRIGger:SLOPe:TLOWer`` (``PGLess``/``NGLess``).
+        slope_window (str): ``:TRIGger:SLOPe:WINDow`` (``TA``/``TB``/``TAB``).
+        slope_alevel (float): ``:TRIGger:SLOPe:ALEVel`` (upper trigger level).
+        slope_blevel (float): ``:TRIGger:SLOPe:BLEVel`` (lower trigger level).
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields applicable to the active mode are queried regardless of which
-        arguments were initially provided; fields for other modes are ``None``.
-        The ``status`` field is additionally provided as a result of the query
-        ``:TRIGger:STATus?``.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided, plus the read-only ``status`` (``:TRIGger:STATus?``)
+        and ``position`` (``:TRIGger:POSition?``). Fields belonging to a non-active
+        mode are ``None``.
     """
-    if sweep is not None:
-        oscope.write(":TRIG:SWE {:s}".format(sweep))
-
-    if noisereject is not None:
-        oscope.write(":TRIG:NREJ {:d}".format(noisereject))
-
-    if mode is not None:
-        oscope.write(":TRIG:MODE {:s}".format(mode))
-
-    trigger_query = TRIGGER(
-        status=oscope.query(":TRIG:STAT?"),
-        sweep=oscope.query(":TRIG:SWE?"),
-        noisereject=bool(int(oscope.query(":TRIG:NREJ?"))),
-        mode=oscope.query(":TRIG:MODE?"),
+    provided = dict(
+        sweep=sweep,
+        holdoff=holdoff,
+        nreject=nreject,
+        mode=mode,
+        coupling=coupling,
+        edge_source=edge_source,
+        edge_slope=edge_slope,
+        edge_level=edge_level,
+        pulse_source=pulse_source,
+        pulse_when=pulse_when,
+        pulse_width=pulse_width,
+        pulse_uwidth=pulse_uwidth,
+        pulse_lwidth=pulse_lwidth,
+        pulse_level=pulse_level,
+        slope_source=slope_source,
+        slope_when=slope_when,
+        slope_time=slope_time,
+        slope_tupper=slope_tupper,
+        slope_tlower=slope_tlower,
+        slope_window=slope_window,
+        slope_alevel=slope_alevel,
+        slope_blevel=slope_blevel,
     )
+    write_fields(oscope, _SETTABLE, provided)
 
-    if trigger_query.mode == "EDGE":
-        return trigger_edge(
-            oscope, trigger_query, holdoff, coupling, source, slope, level
-        )
-
-    if trigger_query.mode == "PULS":
-        return trigger_pulse(oscope, trigger_query, source, when, level, upper, lower)
-
-    if trigger_query.mode == "SLOP":
-        return trigger_slope(
-            oscope,
-            trigger_query,
-            source,
-            when,
-            time,
-            upper,
-            lower,
-            window,
-            alevel,
-            blevel,
-        )
-
-    return trigger_query
-
-
-def trigger_edge(oscope, trigger_query, holdoff, coupling, source, slope, level):
-    """
-    Helper function to configure edge-triggering, ``:TRIGger:MODE EDGE``.
-
-    Args:
-        holdoff (float): ``:TRIGger:HOLDoff``
-        coupling (str): ``:TRIGger:COUPling``
-        source (int, str): ``:TRIGger:EDGe:SOURce``
-        slope (str): ``:TRIGger:EDGe:SLOPe``
-        level (float): ``:TRIGger:EDGe:LEVel``
-    """
-    if holdoff is not None:
-        oscope.write(":TRIG:HOLD {:0.10f}".format(holdoff))
-
-    if coupling is not None:
-        oscope.write(":TRIG:COUP {:s}".format(coupling))
-
-    if source is not None:
-        oscope.write(":TRIG:EDG:SOUR " + _source_token(source))
-
-    if slope is not None:
-        oscope.write(":TRIG:EDG:SLOP {:s}".format(slope))
-
-    if level is not None:
-        oscope.write(":TRIG:EDG:LEV {:0.10f}".format(level))
-
-    return trigger_query._replace(
-        holdoff=float(oscope.query(":TRIG:HOLD?")),
-        coupling=oscope.query(":TRIG:COUP?"),
-        source=_source_value(oscope.query(":TRIG:EDG:SOUR?")),
-        slope=oscope.query(":TRIG:EDG:SLOP?"),
-        level=float(oscope.query(":TRIG:EDG:LEV?")),
-    )
-
-
-def trigger_pulse(oscope, trigger_query, source, when, level, upper, lower):
-    """
-    Helper function to configure pulse-width triggering, ``:TRIGger:MODE PULSe``.
-
-    Args:
-        source (int, str): ``:TRIGger:PULSe:SOURce``
-        when (str): ``:TRIGger:PULSe:WHEN`` (e.g. ``PGReater``, ``PLESs``, ``PGLess``).
-        level (float): ``:TRIGger:PULSe:LEVel``
-        upper (float): ``:TRIGger:PULSe:UWIDth``
-        lower (float): ``:TRIGger:PULSe:LWIDth``
-    """
-    if source is not None:
-        oscope.write(":TRIG:PULS:SOUR " + _source_token(source))
-
-    if when is not None:
-        oscope.write(":TRIG:PULS:WHEN {:s}".format(when))
-
-    if level is not None:
-        oscope.write(":TRIG:PULS:LEV {:0.10f}".format(level))
-
-    if upper is not None:
-        oscope.write(":TRIG:PULS:UWID {:0.10f}".format(upper))
-
-    if lower is not None:
-        oscope.write(":TRIG:PULS:LWID {:0.10f}".format(lower))
-
-    return trigger_query._replace(
-        source=_source_value(oscope.query(":TRIG:PULS:SOUR?")),
-        when=oscope.query(":TRIG:PULS:WHEN?"),
-        level=float(oscope.query(":TRIG:PULS:LEV?")),
-        upper=float(oscope.query(":TRIG:PULS:UWID?")),
-        lower=float(oscope.query(":TRIG:PULS:LWID?")),
-    )
-
-
-def trigger_slope(
-    oscope,
-    trigger_query,
-    source,
-    when,
-    time,
-    upper,
-    lower,
-    window,
-    alevel,
-    blevel,
-):
-    """
-    Helper function to configure slope (rise/fall time) triggering,
-    ``:TRIGger:MODE SLOPe``.
-
-    Args:
-        source (int, str): ``:TRIGger:SLOPe:SOURce``
-        when (str): ``:TRIGger:SLOPe:WHEN`` (e.g. ``PGReater``, ``PLESs``, ``PGLess``).
-        time (float): ``:TRIGger:SLOPe:TIME``
-        upper (float): ``:TRIGger:SLOPe:TUPPer``
-        lower (float): ``:TRIGger:SLOPe:TLOWer``
-        window (str): ``:TRIGger:SLOPe:WINDow`` (``TA``, ``TB``, or ``TAB``).
-        alevel (float): ``:TRIGger:SLOPe:ALEVel``
-        blevel (float): ``:TRIGger:SLOPe:BLEVel``
-    """
-    if source is not None:
-        oscope.write(":TRIG:SLOP:SOUR " + _source_token(source))
-
-    if when is not None:
-        oscope.write(":TRIG:SLOP:WHEN {:s}".format(when))
-
-    if time is not None:
-        oscope.write(":TRIG:SLOP:TIME {:0.10f}".format(time))
-
-    if upper is not None:
-        oscope.write(":TRIG:SLOP:TUPP {:0.10f}".format(upper))
-
-    if lower is not None:
-        oscope.write(":TRIG:SLOP:TLOW {:0.10f}".format(lower))
-
-    if window is not None:
-        oscope.write(":TRIG:SLOP:WIND {:s}".format(window))
-
-    if alevel is not None:
-        oscope.write(":TRIG:SLOP:ALEV {:0.10f}".format(alevel))
-
-    if blevel is not None:
-        oscope.write(":TRIG:SLOP:BLEV {:0.10f}".format(blevel))
-
-    return trigger_query._replace(
-        source=_source_value(oscope.query(":TRIG:SLOP:SOUR?")),
-        when=oscope.query(":TRIG:SLOP:WHEN?"),
-        time=float(oscope.query(":TRIG:SLOP:TIME?")),
-        upper=float(oscope.query(":TRIG:SLOP:TUPP?")),
-        lower=float(oscope.query(":TRIG:SLOP:TLOW?")),
-        window=oscope.query(":TRIG:SLOP:WIND?"),
-        alevel=float(oscope.query(":TRIG:SLOP:ALEV?")),
-        blevel=float(oscope.query(":TRIG:SLOP:BLEV?")),
-    )
+    values = read_fields(oscope, _TOP + _READONLY)
+    values.update(read_fields(oscope, _MODES.get(values["mode"], ())))
+    return TRIGGER(**{name: values.get(name) for name in TRIGGER._fields})

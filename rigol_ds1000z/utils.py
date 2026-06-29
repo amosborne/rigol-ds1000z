@@ -50,6 +50,12 @@ def find_visas():
             finally:
                 visa_resource.close()
 
+        # Stop at the first backend that finds a scope; scanning the next backend
+        # is redundant and the "@py" network discovery (VXI11/HiSLIP) is slow and
+        # noisy (leaks ResourceWarning sockets) when "@ivi" already found it.
+        if visas:
+            break
+
     return visas
 
 

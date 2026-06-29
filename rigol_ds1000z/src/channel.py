@@ -1,11 +1,14 @@
 from collections import namedtuple
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from rigol_ds1000z.src._scpi import Bool, Float, String, read_fields, write_fields
 
+if TYPE_CHECKING:
+    from rigol_ds1000z.src.oscope import Rigol_DS1000Z
+
 CHANNEL = namedtuple(
     "CHANNEL",
-    "bwlimit coupling display invert offset range tcal scale probe units vernier",
+    "bwlimit coupling display invert vernier probe range scale offset tcal units",
 )
 
 # Declaration order is the write order. ``range``, ``scale``, and ``offset`` are
@@ -26,7 +29,7 @@ _SETTABLE = (
 
 
 def channel(
-    oscope,
+    oscope: "Rigol_DS1000Z",
     n: int,
     bwlimit: Optional[bool] = None,
     coupling: Optional[str] = None,
@@ -61,8 +64,8 @@ def channel(
         vernier (bool): ``:CHANnel<n>:VERNier``
 
     Returns:
-        A namedtuple with fields corresponding to the named arguments of this function.
-        All fields are queried regardless of which arguments were initially provided.
+        A namedtuple with a field for each argument, queried back regardless of
+        which were provided.
     """
     provided = dict(
         bwlimit=bwlimit,

@@ -34,29 +34,21 @@ with Rigol_DS1000Z() as oscope:
     oscope.rst()
     print(oscope.idn())
 
-    # configure channels 1 and 2, the timebase, and the trigger
-    channel1 = oscope.channel(1, probe=1, coupling="AC", offset=3.0, scale=2)
-    channel2 = oscope.channel(2, probe=1, scale=1, display=True)
+    # configure channel 2, the timebase, and the trigger
+    channel = oscope.channel(2, probe=10, scale=1, coupling="AC", display=True)
     timebase = oscope.timebase(main_scale=200e-6)
-    trigger = oscope.trigger(mode="EDGE", source=2, coupling="DC", level=1.5)
-
-    # send an SCPI commands to setup the math channel
-    oscope.write(":MATH:DISPlay ON")
-    oscope.write(":MATH:OPER SUBT")
-    oscope.write(":MATH:SOUR2 CHAN2")
-    oscope.write(":MATH:SCAL 5")
-    oscope.write(":MATH:OFFS -10")
+    trigger = oscope.trigger(mode="EDGE", edge_source=2, coupling="DC", edge_level=0)
 
     # wait three seconds then single trigger
-    sleep(3)
     oscope.single()
+    sleep(3)
 
     # capture the display image
     display = oscope.display()
     process_display(display, show=True)
 
-    # plot the channel 1 waveform data
-    waveform = oscope.waveform(source=1)
+    # plot the channel 2 waveform data
+    waveform = oscope.waveform(source=2)
     process_waveform(waveform, show=True)
 
 ```
@@ -69,7 +61,7 @@ Available on [PyPI](https://pypi.org/project/rigol-ds1000z/). This package uses 
 
 This software has been tested on Windows (Command Prompt and PowerShell), although it should be possible to run in other shells and/or operating systems. For best visual performance, a default of white text on a black background is recommended.
 
-The software does insert some sleep time on specific commands (such as reset and autoscale) to ensure fluid operation of the oscilloscope. The user may find that they require additional downtime after certain command sequences.
+Reset and autoscale block on the IEEE 488.2 `*OPC?` query until the instrument reports the operation complete, so no fixed sleep is inserted. The user may still find that they require additional settle time after certain command sequences (for example, after arming a single-trigger acquisition before reading the trigger status).
 
 ## Software development and references.
 
