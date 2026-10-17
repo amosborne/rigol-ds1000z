@@ -7,6 +7,7 @@ __pycache__/
 *.egg-info/
 
 # tooling caches
+.venv/
 .mypy_cache/
 .pytest_cache/
 
